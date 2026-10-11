@@ -108,22 +108,6 @@ const AdminDashboard = () => {
           trend="+12.5%"
         />
         <StatCard
-          title="Total Doctors"
-          value={stats.totalDoctors || 0}
-          icon={<FiTrendingUp />}
-          bgColor="bg-green-50"
-          iconColor="text-green-600"
-          trend="+8.2%"
-        />
-        <StatCard
-          title="Pending Doctors"
-          value={stats.pendingDoctors || 0}
-          icon={<FiUsers />}
-          bgColor="bg-amber-50"
-          iconColor="text-amber-600"
-          trend=""
-        />
-        <StatCard
           title="Total Orders"
           value={stats.totalOrders || 0}
           icon={<FiShoppingCart />}
@@ -132,29 +116,14 @@ const AdminDashboard = () => {
           trend="+15.3%"
         />
         <StatCard
-          title="Total Appointments"
-          value={stats.totalAppointments || 0}
-          icon={<FiCalendar />}
-          bgColor="bg-orange-50"
-          iconColor="text-orange-600"
-          trend="+5.2%"
+          title="Total Products"
+          value={stats.totalProducts || 0}
+          icon={<FiShoppingCart />}
+          bgColor="bg-purple-50"
+          iconColor="text-purple-600"
+          trend="+15.3%"
         />
-        <StatCard
-          title="Pending Appointments"
-          value={stats.pendingAppointments || 0}
-          icon={<FiCalendar />}
-          bgColor="bg-yellow-50"
-          iconColor="text-yellow-600"
-          trend=""
-        />
-        <StatCard
-          title="Pending Leave Requests"
-          value={stats.pendingLeaveRequests || 0}
-          icon={<FiUsers />}
-          bgColor="bg-rose-50"
-          iconColor="text-rose-600"
-          trend=""
-        />
+         
         <StatCard
           title="Total Revenue"
           value={`₹${(stats.totalRevenue || 0).toLocaleString()}`}
@@ -229,24 +198,14 @@ const AdminDashboard = () => {
             >
               Manage Users
             </button>
-            <button
-              onClick={() => navigate("/admin/doctors")}
-              className="w-full px-4 py-3 bg-linear-to-r from-green-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg transition"
-            >
-              Manage Doctors
-            </button>
+             
             <button
               onClick={() => navigate("/admin/orders")}
               className="w-full px-4 py-3 bg-linear-to-r from-purple-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition"
             >
               Manage Orders
             </button>
-            <button
-              onClick={() => navigate("/admin/leave-requests")}
-              className="w-full px-4 py-3 bg-linear-to-r from-rose-500 to-rose-600 text-white rounded-lg font-medium hover:shadow-lg transition"
-            >
-              Manage Leave Requests
-            </button>
+            
             <button
               onClick={() => navigate("/admin/products")}
               className="w-full px-4 py-3 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium hover:shadow-lg transition"
@@ -259,12 +218,7 @@ const AdminDashboard = () => {
             >
               Manage Order Requests
             </button>
-            <button
-              onClick={() => navigate("/admin/delivery-men")}
-              className="w-full px-4 py-3 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-lg font-medium hover:shadow-lg transition"
-            >
-              Manage Delivery Men
-            </button>
+            
             <button
               onClick={() => navigate("/admin/notices")}
               className="w-full px-4 py-3 bg-linear-to-r from-cyan-500 to-cyan-600 text-white rounded-lg font-medium hover:shadow-lg transition"

@@ -52,10 +52,10 @@ const SelectedProduct = () => {
     }, [productData]);
 
     if (loading) return (
-        <div className="min-h-screen bg-white flex items-center justify-center font-['Plus_Jakarta_Sans']">
+        <div className="store-page min-h-screen flex items-center justify-center font-['Plus_Jakarta_Sans']">
             <div className="animate-pulse flex flex-col items-center gap-4">
                 <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <p className="font-black text-slate-400 uppercase text-[10px] tracking-widest">Sterilizing View...</p>
+                <p className="font-black text-slate-400 uppercase text-[10px] tracking-widest">Preparing your view...</p>
             </div>
         </div>
     );
@@ -65,7 +65,7 @@ const SelectedProduct = () => {
     const sizes = Array.isArray(productData.sizes) ? productData.sizes : [];
 
     return (
-        <div className="bg-white min-h-screen font-['Plus_Jakarta_Sans']">
+        <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-6 py-8 md:py-16">
@@ -75,7 +75,7 @@ const SelectedProduct = () => {
                     className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors mb-10 group"
                 >
                     <ArrowLeft01Icon size={20} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-xs font-black uppercase tracking-widest">Back to Pharmacy</span>
+                    <span className="text-xs font-black uppercase tracking-widest">Back to collection</span>
                 </button>
 
                 <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
@@ -101,7 +101,7 @@ const SelectedProduct = () => {
                     <div className="flex flex-col">
                         <div className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full mb-6 w-fit">
                             <SecurityCheckIcon size={16} className="text-blue-600" variant="bulk" />
-                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-wider">Certified Healthcare Product</span>
+                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-wider">A considered fragrance</span>
                         </div>
 
                         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight mb-4">
@@ -156,7 +156,7 @@ const SelectedProduct = () => {
                                 className="flex-1 bg-[#1A56DB] text-white py-6 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all transform active:scale-95 flex items-center justify-center gap-3"
                             >
                                 <ShoppingBasket01Icon size={20} variant="bulk" />
-                                Add to Pharmacy Cart
+                                Add to bag
                             </button>
                         </div>
 

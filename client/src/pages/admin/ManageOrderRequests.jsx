@@ -1,3 +1,4 @@
+import { getAuthCookie } from "../../services/AuthCookies";
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../services/Api";
 
@@ -18,10 +19,10 @@ const ManageOrderRequests = () => {
 
   const fetchOrders = async () => {
     try {
-      setLoading(true);
+      setLoading(true); 
       setError(null);
       const response = await api.get("/api/order/orders", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${getAuthCookie("token")}` },
       });
 
       if (response?.data?.success) {
@@ -92,7 +93,7 @@ const ManageOrderRequests = () => {
       const response = await api.put(
         endpoint,
         { adminNotes },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        { headers: { Authorization: `Bearer ${getAuthCookie("token")}` } }
       );
 
       if (response?.data?.success) {

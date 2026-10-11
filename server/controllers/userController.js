@@ -1,15 +1,70 @@
 import User from '../models/userModel.js';
 import Order from '../models/orderModel.js';
-import Appointment from '../models/appointmentModel.js';
 import Notice from '../models/noticeModel.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { v2 as cloudinary } from 'cloudinary';
 import { validatePasswordStrength } from '../utils/passwordValidator.js';
 
 const createToken = (id, role = "user") => {
     return jwt.sign({ _id: id, role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+};
+
+const googleClient = new OAuth2Client();
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { credential } = req.body;
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+
+        if (!clientId) {
+            return res.status(500).json({ success: false, message: 'Google sign-in is not configured' });
+        }
+        if (!credential) {
+            return res.status(400).json({ success: false, message: 'Google credential is required' });
+        }
+
+        const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: clientId });
+        const payload = ticket.getPayload();
+        if (!payload?.sub || !payload.email || !payload.email_verified) {
+            return res.status(401).json({ success: false, message: 'Unable to verify Google account' });
+        }
+
+        let user = await User.findOne({ email: payload.email.toLowerCase() });
+        if (user?.role && user.role !== 'user') {
+            return res.status(403).json({ success: false, message: 'This account cannot use Google sign-in' });
+        }
+
+        if (!user) {
+            user = await User.create({
+                name: payload.name || payload.email.split('@')[0],
+                email: payload.email.toLowerCase(),
+                password: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10),
+                googleId: payload.sub,
+                authProvider: 'google',
+                image: payload.picture || ''
+            });
+        } else if (!user.googleId || user.authProvider !== 'google') {
+            user.googleId = payload.sub;
+            user.authProvider = 'google';
+            if (!user.image && payload.picture) user.image = payload.picture;
+            await user.save();
+        }
+
+        const token = createToken(user._id, 'user');
+        return res.status(200).json({
+            success: true,
+            message: 'Signed in with Google successfully',
+            token,
+            user: { _id: user._id, name: user.name, email: user.email, role: 'user', image: user.image }
+        });
+    } catch (error) {
+        console.error('Google sign-in error:', error);
+        return res.status(401).json({ success: false, message: 'Google sign-in failed' });
+    }
 };
 
 export const register = async (req, res) => {

@@ -36,7 +36,7 @@ const PlaceOrder = () => {
       if (response.success) setOrders(response.orders || []);
       else setError(response.message || "Failed to load orders");
     } catch (err) {
-      setError("Failed to connect to pharmacy records.");
+      setError("Could not load your order history.");
     } finally {
       setOrdersLoading(false);
     }
@@ -165,14 +165,14 @@ const PlaceOrder = () => {
   const hasPendingCancelRequest = (order) => String(order?.cancelRequest?.status || '') === 'Requested';
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen font-['Plus_Jakarta_Sans']">
+    <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
       <Navbar />
 
       <main className="max-w-6xl mx-auto px-6 py-12 md:py-20">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
             <div>
                 <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Order <span className="text-[#1A56DB]">History</span></h1>
-                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Track your healthcare packages</p>
+        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Your fragrance orders and delivery updates</p>
             </div>
             <button onClick={fetchOrders} className="p-3 bg-white rounded-2xl border border-slate-100 text-slate-400 hover:text-[#1A56DB] transition-colors shadow-sm">
                 <ArrowReloadHorizontalIcon size={20} />
@@ -199,10 +199,10 @@ const PlaceOrder = () => {
         ) : orders.length === 0 ? (
           <div className="text-center py-32 bg-white rounded-[3rem] border border-slate-50 shadow-sm">
             <PackageIcon size={48} className="mx-auto text-slate-200 mb-6" variant="bulk" />
-            <h3 className="text-2xl font-black text-slate-900 mb-2">No prescriptions found</h3>
-            <p className="text-slate-500 font-medium mb-8">Your medication history is empty.</p>
+            <h3 className="text-2xl font-black text-slate-900 mb-2">No orders just yet</h3>
+            <p className="text-slate-500 font-medium mb-8">Your order history will appear here.</p>
             <Link to="/products" className="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#1A56DB] transition-all">
-                Browse Pharmacy <ShoppingBasket01Icon size={18} />
+                Browse fragrances <ShoppingBasket01Icon size={18} />
             </Link>
           </div>
         ) : (

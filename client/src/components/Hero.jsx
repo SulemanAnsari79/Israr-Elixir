@@ -1,144 +1,162 @@
-import React from "react";
-import { 
-  Search01Icon, 
-  OrganicFoodIcon, 
-  SecurityCheckIcon, 
-  DeliveryTruck01Icon, 
-  CustomerService01Icon,
-  Medicine01Icon,
-  Doctor01Icon 
-} from 'hugeicons-react';
+import { useContext, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, ArrowUpRight, Gift, Heart, Leaf, Menu, PackageCheck, ShieldCheck, Sparkles, Truck } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext.jsx';
+import api from '../services/Api.js';
 
-const Hero = () => {
-  return (
-    <section className="relative bg-[#fafbfc] pt-20 pb-32 font-['Plus_Jakarta_Sans'] px-6 overflow-hidden">
-      
-      {/* 1. LAYERED IMMERSIVE BACKGROUND */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Animated Aurora Blobs */}
-        <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-gradient-to-br from-blue-400/20 to-transparent rounded-full blur-[140px] animate-mesh-1"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-gradient-to-tr from-teal-400/20 to-transparent rounded-full blur-[140px] animate-mesh-2"></div>
-        <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-gradient-to-l from-indigo-400/10 to-transparent rounded-full blur-[120px] animate-mesh-3"></div>
-
-        {/* Grainy Noise Texture Overlay (The Secret to "Premium" Look) */}
-        <div className="absolute inset-0 opacity-[0.4] mix-blend-overlay" 
-             style={{ backgroundImage: `url("https://res.cloudinary.com/dzf9rq999/image/upload/v1689150383/noise_vv6yzk.png")` }}>
-        </div>
-
-        {/* Subtle Geometric Grid */}
-        <div className="absolute inset-0 opacity-[0.05]" 
-             style={{ backgroundImage: `radial-gradient(#1A56DB 0.5px, transparent 0.5px)`, backgroundSize: '30px 30px' }}>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        
-        {/* 2. FLOATING ELEMENTS WITH BLUR GLASS EFFECTS */}
-        <div className="absolute top-0 left-0 hidden lg:block animate-float">
-           <div className="backdrop-blur-xl bg-white/40 p-4 rounded-3xl shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] border border-white/20 flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-200">
-                <Medicine01Icon size={20} color="#fff" variant="bulk" />
-              </div>
-              <span className="text-[11px] font-black uppercase text-slate-600 tracking-tighter">Certified Meds</span>
-           </div>
-        </div>
-
-        <div className="absolute bottom-130 right-0 hidden lg:block animate-float-delayed">
-           <div className="backdrop-blur-xl bg-white/40 p-4 rounded-3xl shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] border border-white/20 flex items-center gap-3">
-              <div className="p-2 bg-teal-500 rounded-xl shadow-lg shadow-teal-200">
-                <Doctor01Icon size={20} color="#fff" variant="bulk" />
-              </div>
-              <span className="text-[11px] font-black uppercase text-slate-600 tracking-tighter">Live Consult</span>
-           </div>
-        </div>
-
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-md px-6 py-2.5 rounded-full mb-8 border border-white shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
-            <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-            </span>
-            <span className="text-[11px] font-black text-slate-700 uppercase tracking-[0.2em]">India's #1 Digital Healthcare</span>
-          </div>
-
-          <h1 className="text-6xl md:text-8xl font-black text-slate-900 mb-8 tracking-tighter leading-[0.9] overflow-visible">
-            Your Health, <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1A56DB] via-[#2563EB] to-[#0D9488] italic font-serif">
-               Simplified.
-            </span>
-          </h1>
-
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed mb-12 opacity-80">
-            Order genuine medications and consult specialists. 
-          </p>
-
-          {/* 3. ULTRA-MODERN SEARCH BOX */}
-          {/* <div className="max-w-3xl mx-auto px-4 relative group">
-            <div className="absolute inset-0 bg-blue-600/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-            <div className="relative flex flex-col md:flex-row items-center bg-white border-[1px] border-slate-200 rounded-[2.5rem] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all duration-500 focus-within:border-blue-500 focus-within:shadow-[0_20px_50px_rgba(26,86,219,0.1)]">
-              <div className="flex-1 flex items-center px-6 py-4 w-full">
-                <Search01Icon size={24} className="text-blue-600" />
-                <input 
-                  type="text" 
-                  placeholder="What are you feeling today?" 
-                  className="w-full bg-transparent px-5 outline-none font-bold text-lg text-slate-800 placeholder:text-slate-300"
-                />
-              </div>
-              <button className="w-full md:w-auto bg-[#1A56DB] text-white px-12 py-5 rounded-[2rem] font-black text-sm tracking-widest uppercase hover:bg-slate-900 transition-all shadow-lg shadow-blue-200 hover:shadow-none">
-                Get Solution
-              </button>
-            </div>
-          </div> */}
-        </div>
-
-        {/* 4. PREMIUM MINI BENTO GRID */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
-          {[
-            { icon: <SecurityCheckIcon variant="bulk" />, title: "Certified", color: "from-blue-600 to-blue-400" },
-            { icon: <OrganicFoodIcon variant="bulk" />, title: "Natural", color: "from-teal-600 to-teal-400" },
-            { icon: <DeliveryTruck01Icon variant="bulk" />, title: "Swift", color: "from-rose-600 to-rose-400" },
-            { icon: <CustomerService01Icon variant="bulk" />, title: "Support", color: "from-amber-600 to-amber-400" }
-          ].map((item, i) => (
-            <div key={i} className="group relative bg-white/60 backdrop-blur-sm p-8 rounded-[2.5rem] border border-white shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                {React.cloneElement(item.icon, { size: 80 })}
-              </div>
-              <div className={`mb-5 inline-block p-3 rounded-2xl bg-gradient-to-br ${item.color} text-white shadow-lg transform group-hover:rotate-12 transition-transform`}>
-                {React.cloneElement(item.icon, { size: 28 })}
-              </div>
-              <h4 className="font-black text-slate-900 text-lg tracking-tight">{item.title}</h4>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Verified Care</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* <style jsx>{`
-        @keyframes mesh-1 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50% { transform: translate(10%, 15%) scale(1.1); }
-        }
-        @keyframes mesh-2 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50% { transform: translate(-15%, -10%) scale(1.2); }
-        }
-        @keyframes mesh-3 {
-          0%, 100% { transform: translate(0, 0) scale(1.1); }
-          50% { transform: translate(10%, -10%) scale(1); }
-        }
-        .animate-mesh-1 { animation: mesh-1 15s infinite alternate ease-in-out; }
-        .animate-mesh-2 { animation: mesh-2 18s infinite alternate-reverse ease-in-out; }
-        .animate-mesh-3 { animation: mesh-3 20s infinite alternate ease-in-out; }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(2deg); }
-          50% { transform: translateY(-20px) rotate(-2deg); }
-        }
-        .animate-float { animation: float 7s ease-in-out infinite; }
-        .animate-float-delayed { animation: float 9s ease-in-out infinite; animation-delay: 2s; }
-      `}</style> */}
-    </section>
-  );
+const fallbackSlide = {
+  eyebrow: 'A fragrance for every moment',
+  title: 'Find your\nsignature scent.',
+  description: 'Discover memorable fragrances, thoughtfully chosen for every day and every occasion.',
+  image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=1800&q=85',
+  buttonText: 'Explore collection',
+  buttonLink: '/products',
 };
 
-export default Hero;
+const shortcuts = [
+  { label: 'Women’s perfumes', match: 'women', icon: Sparkles },
+  { label: 'Men’s perfumes', match: 'men', icon: Menu },
+  { label: 'Unisex fragrances', match: 'unisex', icon: Heart },
+  { label: 'Gift sets', match: 'gift', icon: Gift },
+  { label: 'Perfume oils', match: 'oil', icon: Leaf },
+  { label: 'Discovery sets', match: 'discovery', icon: PackageCheck },
+];
+
+const money = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
+
+export default function Hero() {
+  const { products: contextProducts = [], addToCart } = useContext(AuthContext);
+  const [homepage, setHomepage] = useState({
+    slides: [fallbackSlide],
+    banners: [],
+    featuredTitle: 'Featured fragrances',
+    featuredProducts: [],
+    bestSellerTitle: 'Best sellers',
+    bestSellerProducts: [],
+    categories: [],
+  });
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  useEffect(() => {
+    api.get('/homepage').then(({ data }) => { if (data?.homepage) setHomepage((current) => ({ ...current, ...data.homepage })); }).catch(() => {});
+  }, []);
+
+  const slides = homepage.slides?.length ? homepage.slides : [fallbackSlide];
+  const slide = slides[activeSlide % slides.length] || fallbackSlide;
+  const featuredProducts = homepage.featuredProducts?.length ? homepage.featuredProducts : contextProducts.filter((product) => product.isActive !== false && product.bestSeller).slice(0, 5);
+  const bestSellerProducts = homepage.bestSellerProducts || [];
+
+  useEffect(() => {
+    if (slides.length < 2) return undefined;
+    const timer = window.setInterval(() => setActiveSlide((current) => (current + 1) % slides.length), 6500);
+    return () => window.clearInterval(timer);
+  }, [slides.length]);
+
+  const categoryItems = homepage.categories?.length
+    ? homepage.categories.slice(0, 6).map((name, index) => ({ label: name, match: name, icon: shortcuts[index % shortcuts.length].icon }))
+    : shortcuts;
+  const categoryLink = (label) => homepage.categories?.includes(label) ? `/products?category=${encodeURIComponent(label)}` : '/products';
+
+  return( 
+  <main className="bg-[#f7f2ec] pb-10 font-['Plus_Jakarta_Sans'] text-[#25221e]">
+    <section className="relative isolate min-h-[470px] overflow-hidden bg-[#e9dfd1] md:min-h-[530px]">
+      <img key={slide.image} src={slide.image} alt="Featured fragrance" className="absolute inset-0 -z-20 h-full w-full object-cover object-center" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#f2e9dc]/95 via-[#f2e9dc]/75 to-transparent md:via-[#f2e9dc]/45" />
+      <div className="mx-auto flex min-h-[470px] max-w-7xl items-center px-6 py-14 md:min-h-[530px] md:px-12">
+        <div className="max-w-xl">
+          <p className="mb-5 text-[10px] font-bold uppercase tracking-[.28em] text-[#715944]">{slide.eyebrow || 'A fragrance for every moment'}</p>
+          <h1 className="whitespace-pre-line font-serif text-5xl leading-[.98] tracking-[-.04em] text-[#24201c] md:text-7xl">{slide.title || fallbackSlide.title}</h1>
+          <p className="mt-5 max-w-md text-sm leading-6 text-[#5e554c] md:text-base">{slide.description}</p>
+          <Link to={slide.buttonLink || '/products'} className="mt-7 inline-flex items-center gap-4 bg-[#161512] px-5 py-3 text-[10px] font-bold uppercase tracking-[.16em] text-white transition hover:bg-[#795c3c]">{slide.buttonText || 'Explore collection'}<ArrowRight size={15} /></Link>
+        </div>
+      </div>
+      {slides.length > 1 && <div className="absolute bottom-6 right-6 flex items-center gap-2 md:right-12">{slides.map((item, index) => <button key={item._id || index} aria-label={`Show slide ${index + 1}`} onClick={() => setActiveSlide(index)} className={`h-1.5 rounded-full transition-all ${index === activeSlide ? 'w-8 bg-[#30271f]' : 'w-3 bg-[#30271f]/35'}`} />)}</div>}
+    </section>
+
+    {/* Category Section */}
+    <section className="mx-auto -mt-5 relative z-10 max-w-7xl px-4 md:px-6">
+      <div className="grid grid-cols-3 overflow-hidden rounded-md border border-[#e9e0d7] bg-[#fbf8f4] shadow-sm md:grid-cols-6">
+        {categoryItems.map(({ label, match, icon: Icon }) => <Link key={label} to={categoryLink(match)} className="group flex min-h-24 flex-col items-center justify-center gap-2 border-r border-[#eee7df] px-2 py-4 text-center last:border-0 hover:bg-white md:min-h-28">
+          <Icon size={19} strokeWidth={1.35} className="text-[#6d5945] transition-transform group-hover:-translate-y-0.5" />
+          <span className="max-w-24 text-[8px] font-bold uppercase leading-3 tracking-[.1em] md:text-[9px]">{label}</span>
+        </Link>)}
+      </div>
+    </section>
+
+    {/* Bestseller Section */}
+    <section className="mx-auto max-w-7xl px-5 pb-8 pt-10 md:px-10 md:pt-12">
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="mb-1 text-[9px] font-bold uppercase tracking-[.23em] text-[#896e51]">Our edit</p>
+          <h2 className="font-serif text-3xl capitalize md:text-4xl">{homepage.featuredTitle || 'Featured fragrances'}</h2>
+        </div>
+        <Link to="/products" className="mb-1 inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-[.13em] hover:text-[#896e51]">
+          View all fragrances 
+          <ArrowRight size={13} />
+        </Link>
+      </div>
+      {featuredProducts.length ? 
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 md:gap-4">
+        {featuredProducts.slice(0, 5).map((product) => 
+          <article key={product._id} className="group min-w-0 bg-[#fffdfa] p-2.5 shadow-[0_2px_12px_rgba(48,39,31,.04)] md:p-3">
+            <Link to={`/product/${product._id}`} className="relative block aspect-[.92] overflow-hidden bg-[#eee8df]">
+            <img src={product.images?.[0] || '/placeholder-image.jpg'} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />{product.discount > 0 && <span className="absolute left-2 top-2 bg-white/90 px-2 py-1 text-[8px] font-bold uppercase tracking-wider">{product.discount}% off</span>}
+            </Link>
+            <div className="px-0.5 pb-1 pt-3">
+              <p className="truncate text-[8px] uppercase tracking-[.15em] text-[#8b7a69]">{product.category}</p>
+              <Link to={`/product/${product._id}`} className="mt-1 block truncate font-serif text-sm md:text-base">{product.name}</Link>
+            <div className="mt-2 flex items-center justify-between gap-2"><span className="text-[10px] font-semibold">{money(product.price)}</span><button aria-label={`Add ${product.name} to cart`} onClick={() => addToCart?.(product._id)} className="flex h-7 w-7 items-center justify-center rounded-full bg-[#26231f] text-white transition hover:bg-[#896e51]"><span className="text-lg leading-none">+</span></button></div></div>
+          </article>)
+        }
+        </div> : 
+        <div className="rounded bg-white/60 p-8 text-center text-sm text-[#776c61]">New fragrances are coming soon.</div>
+      }
+    </section>
+
+    {bestSellerProducts.length > 0 && <section className="mx-auto max-w-7xl px-5 pb-8 pt-2 md:px-10">
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="mb-1 text-[9px] font-bold uppercase tracking-[.23em] text-[#896e51]">Customer favourites</p>
+          <h2 className="font-serif text-3xl capitalize md:text-4xl">{homepage.bestSellerTitle || 'Best sellers'}</h2>
+        </div>
+        <Link to="/products" className="mb-1 inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-[.13em] hover:text-[#896e51]">
+          Shop best sellers
+          <ArrowRight size={13} />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 md:gap-4">
+        {bestSellerProducts.slice(0, 5).map((product) =>
+          <article key={product._id} className="group min-w-0 bg-[#fffdfa] p-2.5 shadow-[0_2px_12px_rgba(48,39,31,.04)] md:p-3">
+            <Link to={`/product/${product._id}`} className="relative block aspect-[.92] overflow-hidden bg-[#eee8df]">
+              <img src={product.images?.[0] || '/placeholder-image.jpg'} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              {product.discount > 0 && <span className="absolute left-2 top-2 bg-white/90 px-2 py-1 text-[8px] font-bold uppercase tracking-wider">{product.discount}% off</span>}
+            </Link>
+            <div className="px-0.5 pb-1 pt-3">
+              <p className="truncate text-[8px] uppercase tracking-[.15em] text-[#8b7a69]">{product.category}</p>
+              <Link to={`/product/${product._id}`} className="mt-1 block truncate font-serif text-sm md:text-base">{product.name}</Link>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <span className="text-[10px] font-semibold">{money(product.price)}</span>
+                <button aria-label={`Add ${product.name} to cart`} onClick={() => addToCart?.(product._id)} className="flex h-7 w-7 items-center justify-center rounded-full bg-[#26231f] text-white transition hover:bg-[#896e51]"><span className="text-lg leading-none">+</span></button>
+              </div>
+            </div>
+          </article>)}
+      </div>
+    </section>}
+
+    {homepage.banners?.length > 0 && <section className="mx-auto grid max-w-7xl gap-4 px-5 pb-9 md:grid-cols-2 md:px-10">{homepage.banners.slice(0, 2).map((banner, index) => <article key={banner._id || index} className="relative flex min-h-44 items-center overflow-hidden bg-[#d8c7b2] p-6 md:min-h-52 md:p-9"><img src={banner.image} alt="" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-gradient-to-r from-[#efe4d7]/95 via-[#efe4d7]/75 to-transparent" /><div className="relative max-w-[65%]"><p className="text-[8px] font-bold uppercase tracking-[.2em] text-[#755d43]">{banner.eyebrow}</p><h2 className="mt-2 font-serif text-2xl leading-tight md:text-3xl">{banner.title}</h2><p className="mt-2 line-clamp-2 text-xs text-[#5f5448]">{banner.description}</p><Link to={banner.buttonLink || '/products'} className="mt-4 inline-flex items-center gap-2 bg-white/75 px-3 py-2 text-[8px] font-bold uppercase tracking-wider">{banner.buttonText || 'Explore'}<ArrowUpRight size={12} /></Link></div></article>)}</section>}
+
+
+    <section className="mx-auto grid max-w-7xl grid-cols-2 gap-4 border-t border-[#e9dfd4] px-5 pt-7 md:grid-cols-4 md:px-10">
+      {[
+        { icon: Truck, title: 'Complimentary shipping', text: 'On orders over ₹2,500' }, 
+        { icon: Sparkles, title: 'Discovery samples', text: 'Find your next favorite' }, 
+        { icon: PackageCheck, title: 'Easy returns', text: 'A simple 7 day return policy' }, 
+        { icon: ShieldCheck, title: 'Secure checkout', text: 'Protected payments' }
+      ].map(({ icon: Icon, title, text }) => 
+      <div key={title} className="flex items-center gap-3"><Icon size={18} strokeWidth={1.35} className="shrink-0 text-[#7b654c]" /><div>
+      <p className="text-[8px] font-bold uppercase tracking-[.1em]">{title}</p>
+      <p className="mt-1 text-[9px] text-[#81776d]">{text}</p></div></div>)}
+    </section>
+  </main>
+  );
+}

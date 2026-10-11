@@ -10,16 +10,12 @@ import {
 } from "react-icons/fi";
 import {
   getUsers,
-  getAdminDoctors,
-  getDeliveryMen,
   getRecentNotices,
   sendNoticeEmails,
 } from "../../services/AdminService.js";
 
 const recipientTypeLabel = {
-  users: "Users",
-  doctors: "Doctors",
-  "delivery-men": "Delivery Men",
+  users: "Users"
 };
 
 const Notices = () => {
@@ -38,8 +34,6 @@ const Notices = () => {
 
   const [recipientCounts, setRecipientCounts] = useState({
     users: 0,
-    doctors: 0,
-    "delivery-men": 0,
   });
 
   const [individualRecipients, setIndividualRecipients] = useState([]);
@@ -50,17 +44,6 @@ const Notices = () => {
       const response = await getUsers();
       return (response?.data || []).filter((item) => item?.email);
     }
-
-    if (type === "doctors") {
-      const response = await getAdminDoctors();
-      return (response?.data || []).filter((item) => item?.email);
-    }
-
-    if (type === "delivery-men") {
-      const response = await getDeliveryMen();
-      return (response?.data?.deliveryMen || []).filter((item) => item?.email);
-    }
-
     return [];
   };
 
@@ -68,16 +51,12 @@ const Notices = () => {
     const fetchCounts = async () => {
       try {
         setLoadingRecipients(true);
-        const [usersResult, doctorsResult, deliveryResult] = await Promise.allSettled([
-          fetchTypeRecipients("users"),
-          fetchTypeRecipients("doctors"),
-          fetchTypeRecipients("delivery-men"),
+        const [usersResult] = await Promise.allSettled([
+          fetchTypeRecipients("users")
         ]);
 
         setRecipientCounts({
-          users: usersResult.status === "fulfilled" ? usersResult.value.length : 0,
-          doctors: doctorsResult.status === "fulfilled" ? doctorsResult.value.length : 0,
-          "delivery-men": deliveryResult.status === "fulfilled" ? deliveryResult.value.length : 0,
+          users: usersResult.status === "fulfilled" ? usersResult.value.length : 0
         });
       } catch (err) {
         setError(err?.response?.data?.message || "Failed to load recipients");
@@ -109,7 +88,6 @@ const Notices = () => {
   useEffect(() => {
     const fetchIndividuals = async () => {
       if (scope !== "individual") return;
-
       try {
         setLoadingRecipients(true);
         setError("");
@@ -418,21 +396,21 @@ const Notices = () => {
               <span className="text-gray-700">Users</span>
               <span className="font-semibold text-blue-700">{recipientCounts.users}</span>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-green-50 px-3 py-2">
+            {/* <div className="flex items-center justify-between rounded-lg bg-green-50 px-3 py-2">
               <span className="text-gray-700">Doctors</span>
               <span className="font-semibold text-green-700">{recipientCounts.doctors}</span>
-            </div>
-            <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2">
+            </div> */}
+            {/* <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2">
               <span className="text-gray-700">Delivery Men</span>
               <span className="font-semibold text-amber-700">{recipientCounts["delivery-men"]}</span>
-            </div>
+            </div> */}
           </div>
 
           <div className="mt-6 pt-5 border-t border-gray-200 text-sm text-gray-600 space-y-2">
             <p className="font-medium text-gray-800 flex items-center gap-2">
               <FiUser /> Current Target
             </p>
-            {scope === "all" && <p>All recipients across users, doctors, and delivery men.</p>}
+            {scope === "all" && <p>All recipients across users.</p>}
             {scope === "group" && <p>{recipientTypeLabel[group]} only.</p>}
             {scope === "individual" && (
               <p>

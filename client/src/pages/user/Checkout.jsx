@@ -5,8 +5,7 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import { 
-  // TruckDelivery01Icon, 
+import {  
   CreditCardIcon, 
   Wallet01Icon, 
   UserCircleIcon, 
@@ -15,7 +14,6 @@ import {
   Location01Icon, 
   City01Icon, 
   Message01Icon, 
-  // Secure02Icon,
   CheckmarkBadge01Icon
 } from 'hugeicons-react';
 
@@ -32,7 +30,7 @@ const loadRazorpayScript = () => {
 };
 
 const Checkout = () => {
-  const { user, token, cartItems, products, delivery_fee, currency, backendUrl, clearCart } = useContext(AuthContext);
+  const { user, token, cartItems, products, delivery_fee, backendUrl, clearCart } = useContext(AuthContext);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const normalizedBackendUrl = backendUrl.replace(/\/+$/, '');
@@ -128,8 +126,8 @@ const Checkout = () => {
             key: paymentOrder.keyId,
             amount: paymentOrder.amount,
             order_id: paymentOrder.razorpayOrderId,
-            name: "SehatRaz",
-            theme: { color: "#1A56DB" },
+            name: "Is",
+            theme: { color: "#806345" },
             handler: async (rzpResponse) => {
               const verify = await axios.post(`${normalizedBackendUrl}/api/order/verify-online-payment`, {
                 orderId: paymentOrder.orderId,
@@ -145,14 +143,14 @@ const Checkout = () => {
   };
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen font-['Plus_Jakarta_Sans']">
+    <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-6 py-12 md:py-20">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
             <div>
                 <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Secure <span className="text-[#1A56DB]">Checkout</span></h1>
-                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Delhi & UP Express Terminal</p>
+                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">A few details before your fragrance arrives</p>
             </div>
             <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-2xl border border-slate-100">
                 {/* <Secure02Icon size={20} className="text-[#0D9488]" variant="bulk" /> */}
@@ -203,7 +201,7 @@ const Checkout = () => {
               <h2 className="text-xl font-black text-slate-900 mb-10">Select Payment Method</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {[
-                  { id: 'cod', label: 'Cash on Delivery', icon: <Wallet01Icon size={24}/>, desc: 'Pay when meds arrive' },
+                  { id: 'cod', label: 'Cash on Delivery', icon: <Wallet01Icon size={24}/>, desc: 'Pay when your order arrives' },
                   { id: 'razorpay', label: 'Online Payment', icon: <CreditCardIcon size={24}/>, desc: 'Cards, UPI, Wallets' }
                 ].map((method) => (
                   <button 

@@ -1,3 +1,4 @@
+import { getAuthCookie } from "./AuthCookies";
 import api from './Api';
 
 const OrderService = {
@@ -7,7 +8,7 @@ const OrderService = {
    */
   getUserOrders: async () => {
     try {
-      const response = await api.post('/api/order/userorders', {headers:{Authorization: `Bearer ${localStorage.getItem('token')}`}});
+      const response = await api.post('/api/order/userorders', {headers:{Authorization: `Bearer ${getAuthCookie("token")}`}});
       return response.data;
     } catch (error) {
       console.error('Failed to fetch user orders:', error.response?.data);
@@ -73,7 +74,7 @@ const OrderService = {
    */
   cancelOrder: async (orderId, reason = '') => {
     try {
-      const response = await api.post(`/api/order/cancel/${orderId}`, { reason }, {headers:{Authorization: `Bearer ${localStorage.getItem('token')}`}});
+      const response = await api.post(`/api/order/cancel/${orderId}`, { reason }, {headers:{Authorization: `Bearer ${getAuthCookie("token")}`}});
       return response.data;
     } catch (error) {
       console.error('Failed to cancel order:', error.response?.data);
@@ -156,7 +157,7 @@ const OrderService = {
    */
   requestReturn: async (orderId, reason) => {
     try {
-      const response = await api.post(`/api/order/${orderId}/return`, { reason }, {headers:{Authorization: `Bearer ${localStorage.getItem('token')}`}});
+      const response = await api.post(`/api/order/${orderId}/return`, { reason }, {headers:{Authorization: `Bearer ${getAuthCookie("token")}`}});
       return response.data;
     } catch (error) {
       console.error('Failed to request return:', error.response?.data);
@@ -173,7 +174,7 @@ const OrderService = {
    */
   requestReplace: async (orderId, reason) => {
     try {
-      const response = await api.post(`/api/order/${orderId}/replace`, { reason }, {headers:{Authorization: `Bearer ${localStorage.getItem('token')}`}});
+      const response = await api.post(`/api/order/${orderId}/replace`, { reason }, {headers:{Authorization: `Bearer ${getAuthCookie("token")}`}});
       return response.data;
     } catch (error) {
       console.error('Failed to request replacement:', error.response?.data);

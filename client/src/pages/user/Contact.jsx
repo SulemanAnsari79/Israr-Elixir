@@ -52,7 +52,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen font-['Plus_Jakarta_Sans']">
+    <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
       <Navbar />
 
       <main className="pt-12 md:pt-20">
@@ -60,13 +60,13 @@ const Contact = () => {
         <div className="max-w-7xl mx-auto px-6 text-center mb-16">
           <div className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full mb-6 border border-blue-100">
             <CustomerService01Icon size={16} className="text-[#1A56DB]" variant="bulk" />
-            <span className="text-[11px] font-black text-[#1A56DB] uppercase tracking-wider">Support Center</span>
+            <span className="text-[11px] font-black text-[#1A56DB] uppercase tracking-wider"> Israr Elixircustomer care</span>
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter mb-6">
             We’re here to <span className="italic font-serif text-[#0D9488]">Help.</span>
           </h1>
           <p className="text-slate-500 font-medium max-w-xl mx-auto">
-            Whether you have a question about medications, consultations, or delivery, our team is ready to assist you.
+            Questions about a fragrance, an order, or a gift? Send us a note and our team will be happy to help.
           </p>
         </div>
 

@@ -1,26 +1,22 @@
+import { getAuthCookie } from "../../services/AuthCookies";
 import { useEffect, useState } from "react";
 import { getOrders, updateOrderStatus } from "../../services/AdminService.js";
 import api from "../../services/Api";
 import {
+  FiClock,
+  FiUserCheck,
   FiSearch,
-  FiEdit2,
   FiLoader,
   FiEye,
   FiFilter,
-  FiDownload,
   FiX,
-  FiCheck,
-  FiClock,
   FiTruck,
   FiPackage,
   FiDollarSign,
   FiUser,
-  FiPhone,
   FiMapPin,
-  FiCalendar,
   FiAlertCircle,
   FiCheckCircle,
-  FiUserCheck,
 } from "react-icons/fi";
 
 const ManageOrders = () => {
@@ -36,24 +32,12 @@ const ManageOrders = () => {
   const [showModal, setShowModal] = useState(false);
   const [updatingOrder, setUpdatingOrder] = useState(null);
   const [requestUpdatingKey, setRequestUpdatingKey] = useState("");
-  const [formData, setFormData] = useState({
-    status: "",
-    paymentStatus: "",
-    notes: "",
-  });
-
-  // Delivery man assignment state
-  const [deliveryMen, setDeliveryMen] = useState([]);
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [assignOrderId, setAssignOrderId] = useState(null);
-  const [selectedDeliveryMan, setSelectedDeliveryMan] = useState("");
-  const [assigning, setAssigning] = useState(false);
+  const [formData, setFormData] = useState({status: "", paymentStatus: "", notes: "",});
 
   // Fetch orders on component mount
   useEffect(() => {
     fetchOrders();
-    fetchDeliveryMen();
-  }, []);
+   }, []);
 
   // Filter orders based on search and filters
   useEffect(() => {
@@ -94,44 +78,6 @@ const ManageOrders = () => {
       console.error("Fetch orders error:", err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchDeliveryMen = async () => {
-    try {
-      const res = await api.get("/api/admin/delivery-men", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setDeliveryMen(res.data.deliveryMen || []);
-    } catch (err) {
-      console.error("Fetch delivery men error:", err);
-    }
-  };
-
-  const openAssignModal = (orderId) => {
-    setAssignOrderId(orderId);
-    setSelectedDeliveryMan("");
-    setShowAssignModal(true);
-  };
-
-  const handleAssignOrder = async () => {
-    if (!selectedDeliveryMan) return;
-    try {
-      setAssigning(true);
-      await api.put(
-        `/api/admin/assign-order/${assignOrderId}`,
-        { deliveryManId: selectedDeliveryMan },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
-      setShowAssignModal(false);
-      setError(null);
-      setSuccessMessage("Order assigned to delivery man successfully. Status will be updated by delivery staff.");
-      setTimeout(() => setSuccessMessage(null), 3000);
-      fetchOrders();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to assign order");
-    } finally {
-      setAssigning(false);
     }
   };
 
@@ -188,7 +134,7 @@ const ManageOrders = () => {
       const response = await api.put(
         `/api/order/${orderId}/${requestType}/${actionType}`,
         { adminNotes: "Updated from Manage Orders" },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        { headers: { Authorization: `Bearer ${getAuthCookie("token")}` } }
       );
 
       if (response?.data?.success) {
@@ -282,10 +228,6 @@ const ManageOrders = () => {
     }
   };
 
-  // const calculateTotal = (items) => {
-  //   return items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
-  // };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -298,7 +240,7 @@ const ManageOrders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-r from-gray-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen  to-gray-100 p-2  ">
       {/* Header */}
       <div className="mb-8">
         <div>
@@ -396,7 +338,10 @@ const ManageOrders = () => {
                     Order ID
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                    Customer
+                    Order Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                    Customer Details
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
                     Amount
@@ -406,9 +351,6 @@ const ManageOrders = () => {
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
                     Payment
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                    Date
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
                     Actions
@@ -428,17 +370,13 @@ const ManageOrders = () => {
                           #{order._id?.slice(-8).toUpperCase()}
                         </span>
                       </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(order.createdAt).toLocaleDateString("en-GB")}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="text-sm">
                           <p className="font-medium text-gray-900">{order.shippingDetails?.fullName}</p>
                           <p className="text-gray-500 text-xs">{order.shippingDetails?.email}</p>
-                          {order.assignedTo ? (
-                            <p className="text-gray-500 text-xs mt-1">
-                              Delivery Man: <span className="font-medium text-gray-700">{order.assignedTo.name || "Assigned"}</span>
-                            </p>
-                          ) : (
-                            <p className="text-gray-400 text-xs mt-1">Delivery Man: Not assigned</p>
-                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-gray-900">
@@ -462,9 +400,7 @@ const ManageOrders = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString("en-GB")}
-                      </td>
+                      
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 flex-wrap">
                           <button
@@ -476,7 +412,7 @@ const ManageOrders = () => {
                           </button>
 
                           {/* Assign to Delivery Man button */}
-                          {!["Delivered", "Cancelled"].includes(order.status) && (
+                          {/* {!["Delivered", "Cancelled"].includes(order.status) && (
                             <button
                               onClick={() => openAssignModal(order._id)}
                               className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
@@ -484,7 +420,7 @@ const ManageOrders = () => {
                             >
                               <FiUserCheck size={18} />
                             </button>
-                          )}
+                          )} */}
 
                           {order.returnRequest?.status === "Requested" && (
                             <>
@@ -597,7 +533,7 @@ const ManageOrders = () => {
                 </p>
               </div>
 
-              <div className="border border-gray-200 rounded-lg p-4">
+              {/* <div className="border border-gray-200 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <FiTruck className="text-indigo-600" />
                   Delivery Assignment
@@ -611,7 +547,7 @@ const ManageOrders = () => {
                 ) : (
                   <p className="text-sm text-gray-500">No delivery man assigned yet.</p>
                 )}
-              </div>
+              </div> */}
 
               {/* Order Items */}
               <div className="border border-gray-200 rounded-lg p-4">
@@ -748,65 +684,6 @@ const ManageOrders = () => {
                 Update Order
               </button>
             </div>
-          </div>
-        </div>
-      )}
-      {/* Assign Delivery Man Modal */}
-      {showAssignModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <FiTruck className="text-orange-500" />
-                Assign Delivery Man
-              </h2>
-              <button onClick={() => setShowAssignModal(false)} className="text-gray-400 hover:text-gray-600">
-                <FiX size={22} />
-              </button>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Assigning this order will keep its current status. The delivery man can mark it as <strong>Out for Delivery</strong>.
-            </p>
-            {deliveryMen.length === 0 ? (
-              <p className="text-gray-500 text-sm text-center py-6">
-                No active delivery men found. Create one first.
-              </p>
-            ) : (
-              <>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Delivery Man</label>
-                <select
-                  value={selectedDeliveryMan}
-                  onChange={(e) => setSelectedDeliveryMan(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400 mb-5"
-                >
-                  <option value="">-- Choose delivery man --</option>
-                  {deliveryMen.filter(dm => dm.isActive).map((dm) => (
-                    <option key={dm._id} value={dm._id}>
-                      {dm.name} — {dm.phone}
-                    </option>
-                  ))}
-                </select>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowAssignModal(false)}
-                    className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-100 text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAssignOrder}
-                    disabled={!selectedDeliveryMan || assigning}
-                    className="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 text-sm font-medium disabled:opacity-60 flex items-center justify-center gap-2"
-                  >
-                    {assigning ? (
-                      <><div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" /> Assigning...</>
-                    ) : (
-                      <><FiUserCheck size={16} /> Assign</>
-                    )}
-                  </button>
-                </div>
-              </>
-            )}
           </div>
         </div>
       )}

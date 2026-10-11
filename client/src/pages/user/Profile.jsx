@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
 import AuthService from "../../services/AuthService";
 import OrderService from "../../services/OrderService";
-import { getMyBookedAppointments } from "../../services/DoctorService.js";
+// import { getMyBookedAppointments } from "../../services/DoctorService.js";
 import { 
   UserCircleIcon, 
   Settings02Icon, 
@@ -70,7 +70,7 @@ const Profile = () => {
       try {
         const [ordersResponse, appointmentsResponse] = await Promise.allSettled([
           OrderService.getUserOrders(),
-          getMyBookedAppointments(),
+          // getMyBookedAppointments(),
         ]);
 
         if (ordersResponse.status === "fulfilled") {
@@ -196,7 +196,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen font-['Plus_Jakarta_Sans']">
+    <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-6 py-12 md:py-20">

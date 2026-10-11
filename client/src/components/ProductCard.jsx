@@ -1,69 +1,26 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart01Icon, ViewIcon, StarIcon } from 'hugeicons-react';
-import { AuthContext } from '../context/AuthContext';
+import { ArrowUpRight, Plus } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext.jsx';
 
-const ProductCard = ({ product }) => {
+export default function ProductCard({ product }) {
   const { addToCart } = useContext(AuthContext);
+  const image = Array.isArray(product.images) ? product.images[0] : product.images;
 
-  const handleAddToCart = () => {
-    addToCart(product._id);
-  };
+  return( <article className="amal-product-card rounded-2xl  group min-w-0">
+    <Link to={`/product/${product._id}`} aria-label={`View ${product.name}`} className="relative mb-4 block aspect-[.83] overflow-hidden bg-[#f1ece5]">
+      <img src={image || '/placeholder-image.jpg'} alt={product.name || 'Fragrance'} loading="lazy" className="h-full w-full object-contain p-5 mix-blend-multiply transition-transform duration-700 group-hover:scale-[1.045] sm:p-7" />
+      {product.discount > 0 && <span className="absolute left-3 top-3 bg-[#302a23] px-2 py-1 text-[8px] font-semibold uppercase tracking-[.12em] text-white">-{product.discount}%</span>}
+      <span className="absolute bottom-3 right-3 flex h-9 w-9 translate-y-2 items-center justify-center rounded-full bg-[#fffdfa] text-[#302a23] opacity-0 shadow-sm transition duration-300 group-hover:translate-y-0 group-hover:opacity-100"><ArrowUpRight size={16} strokeWidth={1.5} /></span>
+    </Link>
 
-  return (
-    <div className="group relative bg-white rounded-[2rem] p-4 border border-slate-100 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(26,86,219,0.08)] hover:-translate-y-2 font-['Plus_Jakarta_Sans']">
-      
-      {/* Product Image Container */}
-      <div className="relative overflow-hidden rounded-[1.5rem] aspect-square bg-slate-50">
-        <img 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-          src={product.images && product.images[0] ? product.images[0] : '/placeholder-image.jpg'} 
-          alt={product.name} 
-        />
-        
-        {/* Quick Price Badge */}
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm border border-white/50">
-          <p className="text-xs font-black text-slate-900">₹{product.price}</p>
-        </div>
-
-        {/* Floating Category Tag */}
-        <div className="absolute bottom-3 left-3">
-          <span className="bg-slate-900/10 text-slate-900 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border border-white/20">
-            {product.category}
-          </span>
-        </div>
-      </div>
-
-      {/* Product Details */}
-      <div className="mt-5 px-1 pb-2">
-        <div className="flex items-center gap-1 mb-1">
-          <StarIcon size={12} variant="bulk" className="text-amber-400" />
-          <span className="text-[10px] font-bold text-slate-400">4.8 (120 Reviews)</span>
-        </div>
-
-        <h3 className="text-[15px] font-black text-slate-900 tracking-tight leading-snug line-clamp-1">
-          {product.name}
-        </h3>
-
-        <div className="mt-4 flex items-center gap-2">
-          <Link 
-            to={`/product/${product._id}`} 
-            className="flex-1 flex items-center justify-center gap-2 bg-slate-50 text-slate-900 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-[#1A56DB] hover:text-white transition-all"
-          >
-            <ViewIcon size={16} />
-            Details
-          </Link>
-          
-          <button
-            onClick={handleAddToCart}
-            className="p-3 bg-slate-900 text-white rounded-xl hover:bg-[#0D9488] transition-colors shadow-lg shadow-slate-200 hover:shadow-none"
-          >
-            <ShoppingCart01Icon size={18} variant="bulk" />
-          </button>
-        </div>
+    <div className="flex  min-h-[92px] flex-col">
+      <p className="mb-1 truncate text-[8px] font-medium uppercase tracking-[.18em] text-[#8b7862]">{product.category || 'Perfume'}</p>
+      <Link to={`/product/${product._id}`} className="line-clamp-2 font-serif text-lg leading-tight text-[#302a23] transition hover:text-[#806345]">{product.name}</Link>
+      <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+        <span className="text-xs font-medium text-[#3f352b]">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+        <button type="button" onClick={() => addToCart(product._id)} aria-label={`Add ${product.name} to bag`} className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#d8cbbb] text-[#302a23] transition hover:border-[#302a23] hover:bg-[#302a23] hover:text-white"><Plus size={15} strokeWidth={1.5} /></button>
       </div>
     </div>
-  );
-};
-
-export default ProductCard;
+  </article>);
+}

@@ -1,4 +1,3 @@
-import React from 'react';
 
 const PasswordStrengthIndicator = ({ password = '' }) => {
   const calculateStrength = (pwd) => {

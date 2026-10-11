@@ -4,12 +4,12 @@ import AdminNavbar from "../components/AdminNavbar.jsx";
 
 const AdminLayout = () => {
   return (
-    <div className="flex min-h-screen">
+    <div className="admin-shell flex min-h-screen">
       <AdminSidebar />
 
-      <div className="flex-1 bg-gray-100">
+      <div className="min-w-0 flex-1 bg-gray-100">
         <AdminNavbar />
-        <div className="p-6">
+        <div className="p-4 md:p-7">
           <Outlet />
         </div>
       </div>

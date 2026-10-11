@@ -5,14 +5,16 @@ import { toast } from "react-toastify";
 import AuthService from "../services/AuthService";
 import { AuthContext } from "../context/AuthContext";
 import PasswordStrengthIndicator from "../components/PasswordStrengthIndicator";
+import { GoogleLogin } from "@react-oauth/google";
 
-const LOGIN_BG_IMAGE = "/images/login-impact.jpg";
+const LOGIN_BG_IMAGE = "../dist/LoginBg.png"; // Update the path to your background image
+const LOGO= "../dist/Logo.png"; // Update the path to your logo image
 
 
 export default function Login() {
-  const [role, setRole] = useState("user"); // 'user' | 'doctor' | 'admin'
+  const [role, setRole] = useState("user"); // 'user' | 'admin'
   const [mode, setMode] = useState("login"); // 'login' | 'signup' | 'forgot'
-  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", specialization: "", experience: "", qualifications: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", phone: ""});
   const [loading, setLoading] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [errors, setErrors] = useState({});
@@ -26,9 +28,7 @@ export default function Login() {
 
   const roles = [
     { value: "user", label: "User", icon: "👤" },
-    { value: "doctor", label: "Doctor", icon: "👨‍⚕️" },
     { value: "admin", label: "Admin", icon: "⚙️" },
-    { value: "delivery", label: "Delivery Man", icon: "🚚" },
   ];
 
   const onChange = (e) => {
@@ -67,22 +67,6 @@ export default function Login() {
       newErrors.password = "Password must be at least 6 characters";
     }
 
-    // Doctor-specific validation
-    if (mode === "signup" && role === "doctor") {
-      if (!form.phone.trim()) {
-        newErrors.phone = "Phone number is required";
-      }
-      if (!form.specialization.trim()) {
-        newErrors.specialization = "Specialization is required";
-      }
-      if (!form.experience || form.experience < 0) {
-        newErrors.experience = "Experience (years) is required";
-      }
-      if (!form.qualifications.trim()) {
-        newErrors.qualifications = "Qualifications are required";
-      }
-    }
-
     if (mode === "forgot" && forgotStep === "verifyOtp" && !otp.trim()) {
       newErrors.otp = "OTP is required";
     }
@@ -111,15 +95,11 @@ export default function Login() {
         const response = await AuthService.doctorRegister(
           form.name,
           form.email,
-          form.password,
-          form.phone,
-          form.specialization,
-          form.experience,
-          form.qualifications
+          form.password
         );
         if (response.success || response.message) {
           toast.success(response.message || "Registered successfully! Please wait for admin verification.");
-          setForm({ name: "", email: "", password: "", phone: "", specialization: "", experience: "", qualifications: "" });
+          setForm({ name: "", email: "", password: "" });
           setMode("login");
         } else {
           // Handle password validation errors from server
@@ -133,7 +113,7 @@ export default function Login() {
         const response = await AuthService.register(form.name, form.email, form.password, role);
         if (response.success || response.message) {
           toast.success(response.message || "Registered successfully! Please login.");
-          setForm({ name: "", email: "", password: "", phone: "", specialization: "", experience: "", qualifications: "" });
+          setForm({ name: "", email: "", password: "" });
           setMode("login");
         } else {
           // Handle password validation errors from server
@@ -163,14 +143,9 @@ export default function Login() {
 
         if (role === "user" && response.user) {
           userData = { ...response.user, role: "user" };
-        } else if (role === "doctor" && response.doctor) {
-          userData = { ...response.doctor, role: "doctor" };
         } else if (role === "admin" && response.user) {
           userData = { ...response.user, role: "admin" };
-        } else if (role === "delivery" && response.user) {
-          userData = { ...response.user, role: "delivery" };
-        }
-        
+        }  
         contextLogin({
         ...userData,
         token: response.token
@@ -182,12 +157,8 @@ export default function Login() {
           // Redirect based on role
           if (role === "user") {
             navigate("/");
-          } else if (role === "doctor") {
-            navigate("/doctor");
           } else if (role === "admin") {
             navigate("/admin");
-          } else if (role === "delivery") {
-            navigate("/delivery");
           }
         } else {
           toast.error("Login failed! Invalid response structure.");
@@ -199,6 +170,30 @@ export default function Login() {
       const errorMsg = error.message || "Login failed";
       toast.error(errorMsg);
       console.error("Login error:", error);
+    }
+  };
+
+  const handleGoogleLogin = async (credentialResponse) => {
+    if (!credentialResponse.credential) {
+      toast.error("Google sign-in did not return a credential.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await AuthService.googleLogin(credentialResponse.credential);
+      if (!response.success || !response.user || !response.token) {
+        throw new Error(response.message || "Google sign-in failed");
+      }
+
+      contextLogin({ ...response.user, role: "user", token: response.token });
+      toast.success("Signed in with Google successfully!");
+      navigate("/");
+    } catch (error) {
+      toast.error(error.message || "Google sign-in failed");
+      console.error("Google sign-in error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -275,7 +270,7 @@ export default function Login() {
 
   return (
     <div
-      className="relative min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-950"
+      className="login-page relative min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-950"
       style={{
         backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.68), rgba(2, 6, 23, 0.82)), url('${LOGIN_BG_IMAGE}')`,
         backgroundSize: "cover",
@@ -283,24 +278,23 @@ export default function Login() {
         backgroundAttachment: "fixed",
       }}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(56,189,248,0.2),transparent_35%),radial-gradient(circle_at_80%_90%,rgba(34,197,94,0.15),transparent_40%)]" />
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(56,189,248,0.2),transparent_35%),radial-gradient(circle_at_80%_90%,rgba(34,197,94,0.15),transparent_40%)]" />
       <div className="relative max-w-5xl w-full bg-white/96 shadow-[0_20px_80px_rgba(2,6,23,0.45)] rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2 border border-white/30 backdrop-blur-sm">
-        <div className="flex items-center justify-center bg-linear-to-br from-cyan-700 via-blue-700 to-emerald-700 p-6 md:p-8 order-1">
+        <div className="flex items-center justify-center p-6 md:p-8 order-1">
           <div className="text-white text-center px-4 md:px-6">
-            <h2 className="text-2xl md:text-3xl font-extrabold">Welcome to SehatRazz</h2>
-            <p className="mt-3 md:mt-4 text-sm md:text-base text-cyan-100">Fast, secure access for Patients, Doctors and Admins.</p>
-            <img src="/logo192.png" alt="logo" className="mx-auto mt-4 md:mt-6 w-24 md:w-32 h-24 md:h-32 opacity-80" />
+            <img src={LOGO} alt="Login Background" className="mx-auto mb-6 w-32 h-32 object-cover rounded-full shadow-lg" />
+            <h2 className="font-serif text-2xl tracking-[.12em] md:text-3xl">Welcome to  Israr Elixir</h2>
           </div>
         </div>
 
         <div className="p-6 md:p-8 order-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-semibold">
+            <h3 className="text-2xl text-white font-semibold">
               {mode === "login" ? "Sign in" : mode === "signup" ? "Create account" : "Reset password"}
             </h3>
 
             {/* Role Dropdown */}
-            <div className="relative">
+            <div className="relative border border-white rounded-full">
               <button
                 type="button"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -311,7 +305,7 @@ export default function Login() {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <div className="absolute top-full right-0 mt-2 w-48 bg-black/80 border rounded border-white ">
                   {roles.map((r) => (
                     <button
                       key={r.value}
@@ -321,7 +315,7 @@ export default function Login() {
                         setDropdownOpen(false);
                         setErrors({}); // Clear errors when role changes
                       }}
-                      className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-indigo-50 transition duration-150 ${role === r.value ? 'bg-indigo-100 text-indigo-600 font-medium' : 'text-gray-700'
+                      className={`w-full text-white px-4 py-3 flex items-center gap-3 hover:bg-black transition duration-150
                         }`}
                     >
                       <span className="text-lg">{r.icon}</span>
@@ -336,14 +330,14 @@ export default function Login() {
           <form onSubmit={submit} className="space-y-4">
             {mode === "signup" && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">Full name</label>
+                <label className="block text-sm font-medium text-white">Full name</label>
                 <input
                   type="text"
                   name="name"
                   value={form.name}
                   onChange={onChange}
                   required
-                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
+                  className={`mt-1 text-white/80 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
                     }`}
                   placeholder="Enter your full name"
                 />
@@ -352,20 +346,20 @@ export default function Login() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email address</label>
+              <label className="block text-sm font-medium text-white">Email address</label>
               <input
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={onChange}
                 required
-                className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.email ? 'border-red-500' : 'border-gray-300'
+                className={`mt-1 text-white/80 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="you@example.com"
               />
               {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
               {mode === "forgot" && (
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-white/80">
                   {forgotStep === "sendOtp"
                     ? "We will send a 6-digit OTP to this email."
                     : forgotStep === "verifyOtp"
@@ -377,14 +371,14 @@ export default function Login() {
 
             {mode === "login" || mode === "signup" ? (
               <div>
-                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <label className="block text-sm font-medium text-white">Password</label>
                 <input
                   type="password"
                   name="password"
                   value={form.password}
                   onChange={onChange}
                   required
-                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.password ? 'border-red-500' : 'border-gray-300'
+                  className={`mt-1 block text-white/80 w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.password ? 'border-red-500' : 'border-gray-300'
                     }`}
                   placeholder="••••••••"
                 />
@@ -392,71 +386,28 @@ export default function Login() {
                 {mode === "signup" && <PasswordStrengthIndicator password={form.password} />}
               </div>
             ) : null}
-
-            {mode === "signup" && role === "doctor" && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={form.phone}
-                    onChange={onChange}
-                    required
-                    className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="Enter your phone number"
-                  />
-                  {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
+            {(mode === "login" || mode === "signup") && role === "user" && import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-xs text-white/70">
+                  <span className="h-px flex-1 bg-white/30" />
+                  <span>OR</span>
+                  <span className="h-px flex-1 bg-white/30" />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Specialization</label>
-                  <input
-                    type="text"
-                    name="specialization"
-                    value={form.specialization}
-                    onChange={onChange}
-                    required
-                    className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.specialization ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="e.g., Cardiology, General Medicine"
-                  />
-                  {errors.specialization && <p className="mt-1 text-sm text-red-500">{errors.specialization}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Years of Experience</label>
-                  <input
-                    type="number"
-                    name="experience"
-                    value={form.experience}
-                    onChange={onChange}
-                    min="0"
-                    required
-                    className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.experience ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="Enter years of experience"
-                  />
-                  {errors.experience && <p className="mt-1 text-sm text-red-500">{errors.experience}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Qualifications</label>
-                  <textarea
-                    name="qualifications"
-                    value={form.qualifications}
-                    onChange={onChange}
-                    required
-                    rows="3"
-                    className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.qualifications ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="Enter your qualifications (e.g., MBBS, MD, etc.)"
-                  />
-                  {errors.qualifications && <p className="mt-1 text-sm text-red-500">{errors.qualifications}</p>}
-                </div>
-              </>
+                <GoogleLogin
+                  onSuccess={handleGoogleLogin}
+                  onError={() => toast.error("Google sign-in was cancelled or failed.")}
+                  useOneTap={false}
+                  theme="filled_blue"
+                  size="large"
+                  width="100%"
+                  text="continue_with"
+                />
+              </div>
             )}
 
             {mode === "forgot" && forgotStep === "verifyOtp" && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">Enter OTP</label>
+                <label className="block text-sm font-medium text-white">Enter OTP</label>
                 <input
                   type="text"
                   name="otp"
@@ -466,7 +417,7 @@ export default function Login() {
                     if (errors.otp) setErrors({ ...errors, otp: "" });
                   }}
                   required
-                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.otp ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`mt-1 text-white/80 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.otp ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Enter 6-digit OTP"
                 />
                 {errors.otp && <p className="mt-1 text-sm text-red-500">{errors.otp}</p>}
@@ -476,7 +427,7 @@ export default function Login() {
             {mode === "forgot" && forgotStep === "resetPassword" && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">New Password</label>
+                  <label className="block text-sm font-medium text-white">New Password</label>
                   <input
                     type="password"
                     name="resetPassword"
@@ -486,7 +437,7 @@ export default function Login() {
                       if (errors.resetPassword) setErrors({ ...errors, resetPassword: "" });
                     }}
                     required
-                    className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.resetPassword ? 'border-red-500' : 'border-gray-300'}`}
+                    className={`mt-1 text-white/80 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2  ${errors.resetPassword ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="Enter new password"
                   />
                   {errors.resetPassword && <p className="mt-1 text-sm text-red-500">{errors.resetPassword}</p>}
@@ -494,7 +445,7 @@ export default function Login() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                  <label className="block text-sm font-medium text-white">Confirm New Password</label>
                   <input
                     type="password"
                     name="confirmResetPassword"
@@ -504,7 +455,7 @@ export default function Login() {
                       if (errors.confirmResetPassword) setErrors({ ...errors, confirmResetPassword: "" });
                     }}
                     required
-                    className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.confirmResetPassword ? 'border-red-500' : 'border-gray-300'}`}
+                    className={`mt-1 text-white/80 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.confirmResetPassword ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="Confirm new password"
                   />
                   {errors.confirmResetPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmResetPassword}</p>}
@@ -526,7 +477,7 @@ export default function Login() {
                       setConfirmResetPassword("");
                       setErrors({});
                     }}
-                    className="font-medium text-indigo-600 hover:underline"
+                    className="font-medium text-gray-50 hover:underline"
                   >
                     Forgot password?
                   </button>
@@ -536,7 +487,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading
                     ? "Please wait..."
@@ -567,15 +518,15 @@ export default function Login() {
                     setResetPassword("");
                     setConfirmResetPassword("");
                     setErrors({});
-                    setForm({ name: "", email: "", password: "", phone: "", specialization: "", experience: "", qualifications: "" });
+                    setForm({ name: "", email: "", password: "" });
                   }}
-                  className="text-indigo-600 font-medium hover:underline"
+                  className="text-gray-50 font-medium hover:underline"
                 >
                   Sign up
                 </button>
               </>
-            ) : mode === "login" && (role === "delivery" || role === "admin") ? (
-              <span className="text-gray-400 text-xs">Accounts are managed by the administrator.</span>
+            ) : mode === "login" &&   role === "admin" ? (
+              <span className="text-gray-400 text-xs">Account managed by the administrator.</span>
             ) : mode === "signup" ? (
               <>
                 Already have an account?{" "}
@@ -590,7 +541,7 @@ export default function Login() {
                     setErrors({});
                     setForm({ name: "", email: "", password: "" });
                   }}
-                  className="text-indigo-600 font-medium hover:underline"
+                  className="text-gray-50 font-medium hover:underline"
                 >
                   Sign in
                 </button>
@@ -607,9 +558,9 @@ export default function Login() {
                     setResetPassword("");
                     setConfirmResetPassword("");
                     setErrors({});
-                    setForm({ name: "", email: "", password: "", phone: "", specialization: "", experience: "", qualifications: "" });
+                    setForm({ name: "", email: "", password: ""  });
                   }}
-                  className="text-indigo-600 font-medium hover:underline"
+                  className="text-gray-50 font-medium hover:underline"
                 >
                   Sign in
                 </button>

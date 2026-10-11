@@ -2,7 +2,6 @@ import crypto from 'crypto';
 import Order from '../models/orderModel.js';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
-import DeliveryLocationRule from '../models/deliveryLocationRuleModel.js';
 import nodemailer from 'nodemailer';
 import { getRazorpayInstance, getRazorpayKeyId } from '../config/razorpay.js';
 
@@ -762,7 +761,7 @@ export const rejectCancelRequest = async (req, res) => {
 };
 
 export const getAllOrders = async (req, res) => {
-    const orders = await Order.find().populate('user').populate('assignedTo', 'name email phone').sort({ createdAt: 1 });
+    const orders = await Order.find().populate('user').sort({ createdAt: 1 });
     return res.json({ success: true, orders });
 };
 

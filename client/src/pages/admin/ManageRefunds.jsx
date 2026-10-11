@@ -1,36 +1,28 @@
+import { getAuthCookie } from "../../services/AuthCookies";
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/Api";
+ 
 
 const ManageRefunds = () => {
-  const [appointmentRefunds, setAppointmentRefunds] = useState([]);
+   
   const [cancelRequests, setCancelRequests] = useState([]);
   const [codOrders, setCodOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [appointmentStatusFilter, setAppointmentStatusFilter] = useState("PendingApproval");
   const [codStatusFilter, setCodStatusFilter] = useState("all");
   const [actionKey, setActionKey] = useState("");
-
-  const [notesDraft, setNotesDraft] = useState({});
   const [payoutDraft, setPayoutDraft] = useState({});
 
-  const authHeaders = {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-  };
+  const authHeaders = { headers: { Authorization: `Bearer ${getAuthCookie("token")}` },};
 
   const fetchRefundData = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const [apptRes, codRes, cancelRes] = await Promise.all([
-        api.get(
-          `/api/refund/admin/appointments${
-            appointmentStatusFilter !== "all" ? `?status=${encodeURIComponent(appointmentStatusFilter)}` : ""
-          }`,
-          authHeaders
-        ),
+      const [ codRes, cancelRes] = await Promise.all([
+       
         api.get(
           `/api/refund/admin/cod-orders${
             codStatusFilter !== "all" ? `?status=${encodeURIComponent(codStatusFilter)}` : ""
@@ -39,8 +31,6 @@ const ManageRefunds = () => {
         ),
         api.get("/api/order/cancel-requests?status=Requested", authHeaders),
       ]);
-
-      setAppointmentRefunds(apptRes?.data?.appointments || []);
       setCodOrders(codRes?.data?.orders || []);
       setCancelRequests(cancelRes?.data?.orders || []);
     } catch (err) {
@@ -52,9 +42,9 @@ const ManageRefunds = () => {
 
   useEffect(() => {
     fetchRefundData();
-  }, [appointmentStatusFilter, codStatusFilter]);
+  }, [codStatusFilter]);
 
-  const appointmentRows = useMemo(() => appointmentRefunds, [appointmentRefunds]);
+  // const appointmentRows = useMemo(() => appointmentRefunds, [appointmentRefunds]);
 
   const codRows = useMemo(() => {
     if (codStatusFilter === "all") return codOrders;
@@ -82,27 +72,6 @@ const ManageRefunds = () => {
       await fetchRefundData();
     } catch (err) {
       setError(err?.response?.data?.message || `Failed to ${action} cancellation request`);
-    } finally {
-      setActionKey("");
-    }
-  };
-
-  const decideAppointment = async (appointmentId, action) => {
-    const notes = String(notesDraft[appointmentId] || "").trim();
-    const key = `${appointmentId}-${action}`;
-
-    try {
-      setActionKey(key);
-      setError("");
-      await api.put(
-        `/api/refund/admin/appointments/${appointmentId}/decision?action=${action}`,
-        { adminNotes: notes },
-        authHeaders
-      );
-      setTransientSuccess(`Appointment refund ${action}d successfully`);
-      await fetchRefundData();
-    } catch (err) {
-      setError(err?.response?.data?.message || `Failed to ${action} appointment refund`);
     } finally {
       setActionKey("");
     }
@@ -237,90 +206,6 @@ const ManageRefunds = () => {
                             Reject
                           </button>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="rounded-xl bg-white shadow p-4 space-y-4">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <h2 className="text-xl font-semibold text-gray-900">Appointment Refund Policy Queue</h2>
-          <select
-            value={appointmentStatusFilter}
-            onChange={(e) => setAppointmentStatusFilter(e.target.value)}
-            className="border rounded-lg px-3 py-2"
-          >
-            <option value="PendingApproval">Pending Approval</option>
-            <option value="Refunded">Refunded</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Failed">Failed</option>
-            <option value="all">All</option>
-          </select>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left p-3">Patient</th>
-                <th className="text-left p-3">Doctor</th>
-                <th className="text-left p-3">Slot</th>
-                <th className="text-left p-3">Policy</th>
-                <th className="text-left p-3">Amount</th>
-                <th className="text-left p-3">Status</th>
-                <th className="text-left p-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointmentRows.length === 0 ? (
-                <tr>
-                  <td className="p-3 text-gray-500" colSpan={7}>No appointment refunds found</td>
-                </tr>
-              ) : (
-                appointmentRows.map((item) => {
-                  const status = String(item?.refundControl?.status || "None");
-                  const pending = status === "PendingApproval" || status === "Failed";
-
-                  return (
-                    <tr key={item._id} className="border-t">
-                      <td className="p-3">{item?.user?.name || "N/A"}</td>
-                      <td className="p-3">{item?.doctor?.name || "N/A"}</td>
-                      <td className="p-3">{item?.date} {item?.time}</td>
-                      <td className="p-3">{item?.refundControl?.policyPercent || 0}%</td>
-                      <td className="p-3">Rs. {Number(item?.refundControl?.amount || 0).toFixed(2)}</td>
-                      <td className="p-3">{status}</td>
-                      <td className="p-3 space-y-2">
-                        <textarea
-                          value={notesDraft[item._id] || ""}
-                          onChange={(e) => setNotesDraft((prev) => ({ ...prev, [item._id]: e.target.value }))}
-                          placeholder="Admin note"
-                          className="w-full border rounded p-2"
-                        />
-                        {pending ? (
-                          <div className="flex gap-2">
-                            <button
-                              className="bg-green-600 text-white px-3 py-1 rounded disabled:bg-green-300"
-                              disabled={actionKey === `${item._id}-approve`}
-                              onClick={() => decideAppointment(item._id, "approve")}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              className="bg-red-600 text-white px-3 py-1 rounded disabled:bg-red-300"
-                              disabled={actionKey === `${item._id}-reject`}
-                              onClick={() => decideAppointment(item._id, "reject")}
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-500">No action available</span>
-                        )}
                       </td>
                     </tr>
                   );

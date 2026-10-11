@@ -50,7 +50,6 @@ const orderSchema = new mongoose.Schema({
     failureReason: { type: String, default: "" }
   },
   returnDeadlineDate: { type: Date },
-  assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "DeliveryMan", default: null },
   shippingDetails:{
     fullName:{type:String,required:true},
     email:{type:String,required:true},

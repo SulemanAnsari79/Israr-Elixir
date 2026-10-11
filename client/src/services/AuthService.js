@@ -1,3 +1,4 @@
+import { getAuthCookie, setAuthCookie, clearAuthCookies } from "./AuthCookies";
 import api from './Api';
 
 const AuthService = {
@@ -69,9 +70,9 @@ const AuthService = {
       
       const response = await api.post(`/api/${role}/login`, { email, password});
 
-      // Store token in localStorage
+      // Persist the token in a cookie for subsequent API requests.
       if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
+        setAuthCookie("token", response.data.token);
       }
 
       return response.data;
@@ -86,6 +87,19 @@ const AuthService = {
     }
   },
 
+  googleLogin: async (credential) => {
+    try {
+      const response = await api.post('/api/user/google', { credential });
+      if (response.data.token) {
+        setAuthCookie("token", response.data.token);
+      }
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Google sign-in failed';
+      throw { message: errorMessage, ...error.response?.data };
+    }
+  },
+
   /**
    * Logout user
    * @returns {Promise} - Response from server
@@ -93,13 +107,11 @@ const AuthService = {
   logout: async () => {
     try {
       const response = await api.post('/api/user/logout');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      clearAuthCookies();
       return response.data;
     } catch (error) {
-      // Even if request fails, clear local data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      // Even if request fails, clear the local authentication cookies.
+      clearAuthCookies();
       const errorMessage = error.response?.data?.message || error.message || 'Logout failed';
       throw { message: errorMessage };
     }
@@ -111,7 +123,7 @@ const AuthService = {
    */
   getCurrentUser: async () => {
     try {
-      const response = await api.get('/api/user/profile', {headers:{Authorization: `Bearer ${localStorage.getItem('token')}`}});
+      const response = await api.get('/api/user/profile', {headers:{Authorization: `Bearer ${getAuthCookie("token")}`}});
       return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch user';
@@ -120,7 +132,7 @@ const AuthService = {
   },
   updateProfile: async (profileData) => {
     try {
-      const response = await api.put('/api/user/update-profile', profileData, {headers:{Authorization: `Bearer ${localStorage.getItem('token')}`}});
+      const response = await api.put('/api/user/update-profile', profileData, {headers:{Authorization: `Bearer ${getAuthCookie("token")}`}});
       return response.data;
     }
     catch (error) {
@@ -137,7 +149,7 @@ const AuthService = {
       const response = await api.post('/api/user/upload-profile-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${getAuthCookie("token")}`
         }
       });
       return response.data;
@@ -160,7 +172,7 @@ const AuthService = {
         { currentPassword, newPassword },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${getAuthCookie("token")}`
           }
         }
       );
@@ -181,14 +193,13 @@ const AuthService = {
     try {
       const response = await api.delete('/api/user/delete-account', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${getAuthCookie("token")}`
         },
         data: { password }
       });
       
-      // Clear local storage after successful deletion
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      // Clear authentication cookies after successful deletion.
+      clearAuthCookies();
       
       return response.data;
     }

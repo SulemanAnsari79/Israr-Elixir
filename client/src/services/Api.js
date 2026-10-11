@@ -1,9 +1,8 @@
+import { getAuthCookie, clearAuthCookies } from "./AuthCookies";
 import axios from "axios";
 
 // Backend base URL
-const RAW_BASE_URL =
-  import.meta.env.VITE_BACKEND_URL ||
-  (import.meta.env.DEV ? "http://localhost:4000" : "");
+const RAW_BASE_URL = import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
 
 if (!RAW_BASE_URL && import.meta.env.PROD) {
   console.error("Missing VITE_BACKEND_URL in production environment.");
@@ -31,7 +30,7 @@ api.interceptors.request.use(
       config.url = config.url.replace(/^\/api\//, "/");
     }
 
-    const token = localStorage.getItem("token");
+    const token = getAuthCookie("token");
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -52,11 +51,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    const hadToken = !!localStorage.getItem("token");
+    const hadToken = !!getAuthCookie("token");
 
     if (status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      clearAuthCookies();
 
       // Silently redirect if there was a stale token
       if (hadToken && window.location.pathname !== "/login") {

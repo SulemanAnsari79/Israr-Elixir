@@ -12,4 +12,5 @@ productRouter.delete('/delete-product/:id',adminAuth, deleteProduct);
 productRouter.get('/list', getAllProducts);
 productRouter.get('/get/:id', getProductById);
 
+
 export default productRouter; 

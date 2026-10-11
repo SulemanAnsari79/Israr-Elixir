@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Menu } from "lucide-react";
 import {
-  getAppointments,
-  getDoctors,
-  getLeaveRequests,
   getOrders,
   getRecentNotices,
   getUsers,
 } from "../services/AdminService.js";
-// import { FiMenu } from "react-icons/fi";
 
 const SEEN_BADGES_STORAGE_KEY = "admin_sidebar_seen_badges";
 
@@ -26,8 +23,6 @@ const AdminSidebar = () => {
   const location = useLocation();
   const [badgeCounts, setBadgeCounts] = useState({
     users: 0,
-    doctors: 0,
-    appointments: 0,
     leaveRequests: 0,
     orders: 0,
     orderRequests: 0,
@@ -80,9 +75,6 @@ const AdminSidebar = () => {
     try {
       const [usersRes, doctorsRes, appointmentsRes, leaveReqRes, ordersRes, noticesRes] = await Promise.all([
         getUsers(),
-        getDoctors(),
-        getAppointments(),
-        getLeaveRequests("Pending"),
         getOrders(),
         getRecentNotices(),
       ]);
@@ -155,7 +147,7 @@ const AdminSidebar = () => {
   };
 
   useEffect(() => {
-    fetchBadgeCounts();
+     
     const intervalId = setInterval(fetchBadgeCounts, 60000);
     return () => clearInterval(intervalId);
   }, []);
@@ -163,16 +155,12 @@ const AdminSidebar = () => {
   const menuItems = [
     { name: "Dashboard", path: "/admin" },
     { name: "Users", path: "/admin/users", badgeKey: "users" },
-    { name: "Doctors", path: "/admin/doctors", badgeKey: "doctors" },
-    { name: "Appointments", path: "/admin/appointments", badgeKey: "appointments" },
-    { name: "Leave Requests", path: "/admin/leave-requests", badgeKey: "leaveRequests" },
     { name: "Products", path: "/admin/products" },
+    { name: "Homepage", path: "/admin/homepage" },
     { name: "Orders", path: "/admin/orders", badgeKey: "orders" },
     { name: "Order Requests", path: "/admin/order-requests", badgeKey: "orderRequests" },
     { name: "Refund Control", path: "/admin/refunds", badgeKey: "refunds" },
     { name: "Notices", path: "/admin/notices", badgeKey: "notices" },
-    { name: "Delivery Men", path: "/admin/delivery-men" },
-    { name: "Location Control", path: "/admin/location-control" },
   ];
 
   return (
@@ -180,9 +168,9 @@ const AdminSidebar = () => {
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded shadow"
+        className="fixed left-3 top-3 z-60 rounded-lg border border-[#e9e1d7] bg-[#fffdfa] p-2 text-[#302a23] shadow md:hidden"
       >
-        {/* <FiMenu size={22} /> */}
+        <Menu size={20} />
       </button>
 
       {/* Overlay (Mobile) */}
@@ -195,22 +183,17 @@ const AdminSidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-white shadow-lg z-50 transform transition-transform duration-300 overflow-y-auto
+        className={`fixed md:sticky top-0 left-0 h-screen w-auto bg-[#fffdfa] border-r border-[#e9e1d7] z-50 transform transition-transform duration-300 overflow-y-auto
         ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         {/* Header */}
-        {/* <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">S</span>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900 hidden sm:block">SehatRazz Admin</h1>
-          </div> */}
-        <div className="p-5 border-b">
-          <h2 className="text-xl font-semibold">SehatRaz Admin Panel</h2>
+        <div className="border-b border-[#e9e1d7] p-3 text-center">
+          <p className="font-serif text-lg tracking-[.12em] text-[#302a23]"> Israr Elixir</p>
+          <p className="mt-1 text-[9px] font-semibold uppercase tracking-[.18em] text-[#8b7862]">Store management</p>
         </div>
 
         {/* Links */}
-        <nav className="p-4 space-y-2">
+        <nav className="space-y-1 p-3 pt-5">
           {menuItems.map((item) => (
             (() => {
               const visibleBadge = getVisibleBadgeCount(item.badgeKey);
@@ -222,11 +205,11 @@ const AdminSidebar = () => {
                 setOpen(false);
                 markBadgeAsSeen(item.badgeKey);
               }}
-              className={`flex items-center justify-between px-4 py-2 rounded-lg transition
+              className={`flex items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium transition
               ${
                 location.pathname === item.path
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-700 hover:bg-blue-100"
+                  ? "bg-[#302a23] text-white"
+                  : "text-gray-700 hover:bg-[#f1e9df]"
               }`}
             >
               <span>{item.name}</span>
@@ -234,8 +217,8 @@ const AdminSidebar = () => {
                 <span
                   className={`min-w-5 h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${
                     location.pathname === item.path
-                      ? "bg-white text-blue-600"
-                      : "bg-red-500 text-white"
+                      ? "bg-white text-[#302a23]"
+                      : "bg-[#9e6b51] text-white"
                   }`}
                 >
                   {visibleBadge > 99 ? "99+" : visibleBadge}

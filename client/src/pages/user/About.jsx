@@ -37,27 +37,26 @@ const About = () => {
   }, []);
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen font-['Plus_Jakarta_Sans']">
+    <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
       <Navbar />
 
       <main className="pt-12">
         {/* 1. PREMIUM HERO SECTION */}
-        <section className="relative py-24 px-6 overflow-hidden">
-          <div className="absolute inset-0 z-0">
+        <section className="relative px-6 overflow-hidden">
+          {/* <div className="absolute inset-0 z-0">
              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-linear-to-b from-blue-50/50 to-transparent"></div>
-          </div>
+          </div> */}
           
           <div className="max-w-7xl mx-auto text-center relative z-10">
-            <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full mb-8 shadow-sm border border-slate-100">
-               <StethoscopeIcon size={16} className="text-[#1A56DB]" variant="bulk" />
-               <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Our Journey</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 shadow-sm border border-slate-100">
+               <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">The  Israr Elixirstory</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter mb-6 leading-tight">
-              India’s Most Trusted <br />
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-[#1A56DB] to-[#0D9488] italic font-serif">Healthcare Ecosystem.</span>
-            </h1>
+            {/* <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter mb-6 leading-tight">
+              Fragrance that <br />
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-[#1A56DB] to-[#0D9488] italic font-serif">Feels like you.</span>
+            </h1> */}
             <p className="max-w-2xl mx-auto text-lg text-slate-500 font-medium leading-relaxed">
-              Sehatraz is redefining how you access wellness, merging cutting-edge pharmacy logistics with expert medical consultations.
+              We believe a fragrance can hold a memory, set a mood, and make the everyday feel special.
             </p>
           </div>
         </section>
@@ -69,31 +68,31 @@ const About = () => {
               <div className="absolute -top-6 -left-6 w-32 h-32 bg-teal-100 rounded-full blur-3xl opacity-50"></div>
               <div className="relative z-10 p-4 bg-white rounded-[3rem] shadow-2xl border border-slate-50 -rotate-2">
                 <img
-                  src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=800"
-                  alt="Our Team"
+                  src="https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1000"
+                  alt="A carefully composed perfume bottle"
                   className="rounded-[2.5rem] w-full h-125 object-cover"
                 />
               </div>
             </div>
 
             <div className="space-y-8">
-              <h2 className="text-4xl font-black text-slate-900 tracking-tight">Who We Are</h2>
+              <h2 className="text-4xl font-black text-slate-900 tracking-tight">A little about us</h2>
               <div className="space-y-6 text-slate-600 font-medium leading-relaxed text-lg">
                 <p>
-                  Sehatraz is an integrated e-commerce and e-healthcare platform designed to make healthcare <span className="text-slate-900 font-bold">accessible, affordable, and convenient</span>.
+                   Israr Elixiris a fragrance boutique for people who see scent as part of their <span className="text-slate-900 font-bold">personal style and daily ritual</span>.
                 </p>
                 <p>
-                  We bridge the gap between quality medical products and professional online consultations, empowering you to take complete control of your health journey under one digital roof.
+                  Our edit brings together distinctive perfumes and considered gifts, so finding your next signature scent feels simple and personal.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4 pt-4">
                  <div className="bg-white p-6 rounded-3xl border border-slate-100">
-                    <p className="text-3xl font-black text-[#1A56DB]">10k+</p>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Users Served</p>
+                    <p className="text-3xl font-black text-[#1A56DB]">Fine</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Fragrance notes</p>
                  </div>
                  <div className="bg-white p-6 rounded-3xl border border-slate-100">
-                    <p className="text-3xl font-black text-[#0D9488]">50+</p>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Expert Doctors</p>
+                    <p className="text-3xl font-black text-[#0D9488]">You</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Your signature</p>
                  </div>
               </div>
             </div>
@@ -101,12 +100,12 @@ const About = () => {
         </section>
 
         {/* 3. CORE PILLARS (Mission/Vision/Values) */}
-        <section className="bg-slate-900 py-32">
+        <section className="bg-black py-32">
           <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-12">
             {[
-              { icon: <Target01Icon />, title: "Mission", text: "Providing easy access to reliable healthcare and consultations for every citizen.", color: "text-blue-400" },
-              { icon: <ViewIcon />, title: "Vision", text: "Becoming India’s most trusted and technologically advanced health partner.", color: "text-teal-400" },
-              { icon: <CleanIcon />, title: "Values", text: "Unwavering Trust, Transparency, and a Customer-First Clinical mindset.", color: "text-rose-400" }
+              { icon: <Target01Icon />, title: "Our point of view", text: "Scent is personal. The right one should feel like it was always yours.", color: "text-blue-400" },
+              { icon: <ViewIcon />, title: "Our edit", text: "A considered collection of distinctive scents for every mood and moment.", color: "text-teal-400" },
+              { icon: <CleanIcon />, title: "Our promise", text: "Thoughtful service from discovery through delivery.", color: "text-rose-400" }
             ].map((pillar, i) => (
               <div key={i} className="group p-10 bg-white/5 border border-white/10 rounded-[2.5rem] hover:bg-white/10 transition-all">
                 <div className={`${pillar.color} mb-6 transform group-hover:scale-110 transition-transform`}>
@@ -121,9 +120,9 @@ const About = () => {
 
         {/* 4. WHY CHOOSE US - BENTO GRID */}
         <section className="py-32 max-w-7xl mx-auto px-6">
-          <h2 className="text-center text-4xl font-black text-slate-900 mb-16 tracking-tighter">The Sehatraz Advantage</h2>
+          <h2 className="text-center text-4xl font-black text-slate-900 mb-16 tracking-tighter">The  Israr Elixir experience</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {['Genuine Products', 'Expert Consultation', 'Secure Payments', 'Fast Delivery'].map((feature, i) => (
+            {['A considered collection', 'Gifting made simple', 'Secure checkout', 'Careful delivery'].map((feature, i) => (
               <div key={i} className="bg-white p-8 rounded-4xl border border-slate-100 flex items-center gap-4 hover:shadow-xl hover:-translate-y-1 transition-all">
                 <div className="p-3 bg-blue-50 text-[#1A56DB] rounded-2xl">
                    <CheckmarkBadge01Icon size={24} variant="bulk" />
@@ -133,43 +132,6 @@ const About = () => {
             ))}
           </div>
         </section>
-
-        {/* 5. DELIVERY LOCATIONS - GLASSMORPHISM */}
-        {locations.isEnabled && (
-          <section className="bg-white py-32 px-6">
-            <div className="max-w-7xl mx-auto">
-              <div className="bg-[#fafbfc] rounded-[4rem] p-12 md:p-20 border border-slate-100">
-                <h2 className="text-3xl md:text-5xl font-black text-slate-900 text-center mb-16 tracking-tighter">
-                  Currently <span className="text-[#1A56DB]">Deliver</span> In:
-                </h2>
-                
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 ">
-                  {[
-                    { title: "Countries", list: locations.countries, icon: <GlobalIcon />, color: "bg-indigo-600" },
-                    { title: "States", list: locations.states, icon: <Location01Icon />, color: "bg-blue-600" },
-                    { title: "Cities", list: locations.cities, icon: <City01Icon />, color: "bg-cyan-600" },
-                  ].map((loc, i) => (
-                    loc.list && loc.list.length > 0 && (
-                      <div key={i} className="bg-white p-8 rounded-4xl shadow-sm border border-slate-50 flex flex-col items-center">
-                        <div className={`w-12 h-12 ${loc.color} text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg`}>
-                          {React.cloneElement(loc.icon, { size: 24, variant: "bulk" })}
-                        </div>
-                        <h3 className="font-black text-slate-900 mb-4 uppercase text-[11px] tracking-[0.2em]">{loc.title}</h3>
-                        <div className="w-full space-y-2">
-                           {loc.list.map((item, idx) => (
-                             <div key={idx} className="bg-slate-50 p-3 rounded-xl text-center text-sm font-bold text-slate-600 border border-slate-100">
-                               {item}
-                             </div>
-                           ))}
-                        </div>
-                      </div>
-                    )
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
       </main>
 
       <Footer />

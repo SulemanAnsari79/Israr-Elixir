@@ -15,3 +15,85 @@
 .animate-marquee {
   animation: marquee 18s linear infinite;
 }
+
+:root {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #29251f;
+  background: #f7f2ec;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body { margin: 0; background: #f7f2ec; }
+
+.amal-collection { font-family: 'DM Sans', sans-serif; }
+.store-page.amal-collection main h1,
+.store-page.amal-collection main h2,
+.amal-collection .font-serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+.amal-collection main h1 { font-weight: 500; letter-spacing: -.035em; }
+.amal-product-card { font-family: 'DM Sans', sans-serif; }
+
+/* Shared fragrance storefront palette for every customer route. */
+.store-page { background: #f7f2ec !important; color: #29251f; }
+.store-page [class*="bg-[#fafbfc]"] { background-color: #f7f2ec !important; }
+.store-page [class*="bg-blue-"],
+.store-page [class*="bg-indigo-"],
+.store-page [class*="bg-cyan-"],
+.store-page [class*="bg-teal-"] { background-color: #eee5da !important; }
+.store-page [class*="bg-slate-50"] { background-color: #f4ede4 !important; }
+.store-page [class*="bg-slate-100"] { background-color: #ece3d8 !important; }
+.store-page [class*="text-blue-"],
+.store-page [class*="text-indigo-"],
+.store-page [class*="text-cyan-"],
+.store-page [class*="text-teal-"],
+.store-page [class*="text-[#1A56DB]"],
+.store-page [class*="text-[#0D9488]"] { color: #806345 !important; }
+.store-page [class*="border-blue-"],
+.store-page [class*="border-indigo-"],
+.store-page [class*="border-teal-"] { border-color: #e5d8c8 !important; }
+.store-page [class*="border-slate-"] { border-color: #e9e1d7 !important; }
+.store-page [class*="bg-slate-900"],
+.store-page [class*="bg-[#1A56DB]"],
+.store-page [class*="bg-[#0D9488]"] { background-color: #302a23 !important; }
+.store-page [class*="text-slate-900"] { color: #302a23 !important; }
+.store-page [class*="bg-white"] { background-color: #fffdfa !important; }
+.store-page main h1,
+.store-page main h2 { font-family: Georgia, 'Times New Roman', serif; font-weight: 500; letter-spacing: -.035em; }
+.store-page button,
+.store-page a { -webkit-tap-highlight-color: transparent; }
+.store-page input:not([type="checkbox"]),
+.store-page textarea,
+.store-page select { border-radius: .7rem; }
+.store-page input:focus,
+.store-page textarea:focus,
+.store-page select:focus { --tw-ring-color: rgb(128 99 69 / .2); }
+.store-page ::selection { background: #d8c4aa; color: #29251f; }
+
+/* Admin workspace keeps the same warm material palette with denser tools. */
+.admin-shell { min-height: 100vh; background: #f4efe8; color: #302a23; }
+.admin-shell [class*="bg-white"] { background-color: #fffdfa !important; }
+.admin-shell [class*="bg-gray-50"] { background-color: #f7f2ec !important; }
+.admin-shell [class*="border-gray-"] { border-color: #e9e1d7 !important; }
+.admin-shell input:not([type="checkbox"]):not([type="radio"]),
+.admin-shell textarea,
+.admin-shell select { border-color: #dfd5c9; border-radius: .65rem; }
+.admin-shell input:focus,
+.admin-shell textarea:focus,
+.admin-shell select:focus { --tw-ring-color: rgb(128 99 69 / .25); border-color: #a6896a; }
+.admin-shell table { border-collapse: collapse; }
+.admin-shell th { background: #f5efe7 !important; color: #655541; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+.admin-shell td { border-color: #eee7df !important; }
+.admin-shell button[class*="bg-blue-"],
+.admin-shell button[class*="bg-purple-"],
+.admin-shell button[class*="bg-green-"],
+.admin-shell button[class*="bg-linear-"] { background-image: none !important; background-color: #302a23 !important; }
+.admin-shell button[class*="bg-blue-"]:hover,
+.admin-shell button[class*="bg-purple-"]:hover,
+.admin-shell button[class*="bg-green-"]:hover,
+.admin-shell button[class*="bg-linear-"]:hover { background-color: #806345 !important; }
+
+.login-page { background-color: #302a23 !important; }
+.login-page > div:nth-child(2) { background: rgb(128 99 69 / .16) !important; }
+.login-page [class*="from-cyan-"] { background-image: linear-gradient(135deg, #806345, #493a2b) !important; }
+.login-page [class*="bg-indigo-"] { background-color: #302a23 !important; }
+.login-page [class*="text-indigo-"] { color: #806345 !important; }

@@ -10,7 +10,6 @@ import {
   Add01Icon, 
   Remove01Icon, 
   DeliveryTruck01Icon, 
-  // Secure02Icon, 
   ArrowRight01Icon 
 } from 'hugeicons-react';
 
@@ -47,21 +46,20 @@ const Cart = () => {
   const total = subtotal + deliveryFee;
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen font-['Plus_Jakarta_Sans']">
+    <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-6 py-12 md:py-20">
+      <main className="max-w-7xl mx-auto px-6 py-10 ">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
           <div>
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
               Shopping <span className="text-[#1A56DB]">Cart</span>
             </h1>
             <p className="text-slate-400 font-bold mt-2 uppercase text-[11px] tracking-widest">
-              Review your medications & wellness items
+              Review your selected fragrances
             </p>
           </div>
-          <div className="bg-blue-50 px-6 py-3 rounded-2xl border border-blue-100 flex items-center gap-3">
-             {/* <Secure02Icon size={20} className="text-[#1A56DB]" variant="bulk" /> */}
+          <div className="bg-blue-50 px-6 py-3 rounded-xl border border-blue-100  ">
              <span className="text-[12px] font-black text-[#1A56DB] uppercase">SSL Secured Checkout</span>
           </div>
         </div>
@@ -71,14 +69,14 @@ const Cart = () => {
           {/* LEFT: CART ITEMS LIST */}
           <div className="lg:col-span-8 space-y-6">
             {cartList.length === 0 ? (
-              <div className="bg-white p-20 rounded-[3rem] border border-slate-100 text-center shadow-sm">
+              <div className="bg-white p-20 rounded-xl border border-slate-100 text-center shadow-sm">
                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
                    <ShoppingBasket01Icon size={40} />
                 </div>
                 <h3 className="text-2xl font-black text-slate-900 mb-2">Your basket is empty</h3>
-                <p className="text-slate-500 font-medium mb-8">Looks like you haven't added any health products yet.</p>
+                <p className="text-slate-500 font-medium mb-8">Your bag is ready for a signature scent.</p>
                 <Link to="/products" className="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#1A56DB] transition-all">
-                  Browse Pharmacy <ArrowRight01Icon size={18} />
+                  Explore fragrances <ArrowRight01Icon size={18} />
                 </Link>
               </div>
             ) : (
@@ -132,7 +130,7 @@ const Cart = () => {
 
           {/* RIGHT: ORDER SUMMARY */}
           <div className="lg:col-span-4">
-            <div className="bg-slate-900 rounded-[3rem] p-10 text-white shadow-2xl sticky top-32">
+            <div className="bg-slate-900 rounded-xl p-10 text-white shadow-2xl sticky top-32">
               <h2 className="text-2xl font-black mb-8 tracking-tighter">Order Summary</h2>
 
               <div className="space-y-4 mb-8">
@@ -168,23 +166,7 @@ const Cart = () => {
                 >
                   Confirm & Checkout <ArrowRight01Icon size={18} />
                 </button>
-                
-                <div className="flex items-center justify-center gap-2 text-slate-500 pt-4">
-                  <DeliveryTruck01Icon size={16} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Next day delivery in Delhi/UP</span>
-                </div>
               </div>
-            </div>
-
-            {/* Support Micro-card */}
-            <div className="mt-6 bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center gap-4">
-               <div className="w-10 h-10 bg-teal-50 text-[#0D9488] rounded-xl flex items-center justify-center">
-                  {/* <Secure02Icon size={20} variant="bulk" /> */}
-               </div>
-               <div>
-                  <h4 className="text-xs font-black text-slate-900 uppercase">Secure Platform</h4>
-                  <p className="text-[10px] font-bold text-slate-400">Your medical data is encrypted</p>
-               </div>
             </div>
           </div>
 
