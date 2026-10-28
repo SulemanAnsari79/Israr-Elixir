@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiMenu, FiX, FiLogOut } from "react-icons/fi";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/AuthContextDefinition";
 
 const AdminNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);

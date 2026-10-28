@@ -22,16 +22,13 @@ export default function Shop() {
       countries: [],
       pincodes: [],
     });
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
       const fetchLocations = async () => {
-        setLoading(true);
         const data = await getDeliveryLocations();
         if (data.success && data.locations) {
           setLocations(data.locations);
         }
-        setLoading(false);
       };
     fetchLocations();
     }, []);

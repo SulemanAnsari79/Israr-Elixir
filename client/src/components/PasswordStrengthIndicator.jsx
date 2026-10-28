@@ -9,7 +9,7 @@ const PasswordStrengthIndicator = ({ password = '' }) => {
       uppercase: /[A-Z]/.test(pwd),
       lowercase: /[a-z]/.test(pwd),
       numbers: /\d/.test(pwd),
-      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd),
+      special: /[!@#$%^&*()_+=;':"\\|,.<>?\x5B\x5D-]/.test(pwd),
     };
 
     Object.values(checks).forEach(check => {

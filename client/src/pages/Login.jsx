@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronDown, User as UserIcon } from "lucide-react";
 import { toast } from "react-toastify";
 import AuthService from "../services/AuthService";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/AuthContextDefinition";
 import PasswordStrengthIndicator from "../components/PasswordStrengthIndicator";
 import { GoogleLogin } from "@react-oauth/google";
 
@@ -137,35 +137,14 @@ export default function Login() {
     try {
       const response = await AuthService.login(form.email, form.password, role);
 
-      if (response.success) {
-        // Extract user data based on role
-        let userData = null;
-
-        if (role === "user" && response.user) {
-          userData = { ...response.user, role: "user" };
-        } else if (role === "admin" && response.user) {
-          userData = { ...response.user, role: "admin" };
-        }  
-        contextLogin({
-        ...userData,
-        token: response.token
-      });
-
-        if (userData) {
-          toast.success("Logged in successfully!");
-
-          // Redirect based on role
-          if (role === "user") {
-            navigate("/");
-          } else if (role === "admin") {
-            navigate("/admin");
-          }
-        } else {
-          toast.error("Login failed! Invalid response structure.");
-        }
-      } else {
-        toast.error(response.message || "Login failed! Please check your credentials.");
+      if (!response.success || !response.user) {
+        throw new Error(response.message || "Login failed! Invalid response.");
       }
+
+      const userData = { ...response.user, role };
+      contextLogin(userData);
+      toast.success(response.message || "Logged in successfully!");
+      navigate(role === "admin" ? "/admin" : "/");
     } catch (error) {
       const errorMsg = error.message || "Login failed";
       toast.error(errorMsg);
@@ -182,11 +161,11 @@ export default function Login() {
     setLoading(true);
     try {
       const response = await AuthService.googleLogin(credentialResponse.credential);
-      if (!response.success || !response.user || !response.token) {
+      if (!response.success || !response.user) {
         throw new Error(response.message || "Google sign-in failed");
       }
 
-      contextLogin({ ...response.user, role: "user", token: response.token });
+      contextLogin({ ...response.user, role: "user" });
       toast.success("Signed in with Google successfully!");
       navigate("/");
     } catch (error) {

@@ -15,7 +15,9 @@ import {
   approveReturn,
   rejectReturn,
   approveReplace,
-  rejectReplace
+  rejectReplace,
+  listRefunds,
+  handleRazorpayWebhook
 } from '../controllers/ordercontroller.js';
 import { adminAuth } from '../middlewares/adminAuth.js';
 import auth from '../middlewares/auth.js';
@@ -27,6 +29,7 @@ orderRouter.post('/userorders',auth ,getMyOrders);
 orderRouter.post('/placeorder', auth, createOrder);
 orderRouter.post('/create-online-order', auth, createOnlineOrder);
 orderRouter.post('/verify-online-payment', auth, verifyOnlinePayment);
+orderRouter.post('/webhooks/razorpay', handleRazorpayWebhook);
 orderRouter.post('/cancel/:id',auth, cancelOrder);
 orderRouter.post('/:id/return',auth, requestReturn);
 orderRouter.post('/:id/replace',auth, requestReplace);
@@ -36,6 +39,7 @@ orderRouter.post('/:id/replace',auth, requestReplace);
 orderRouter.get('/orders',adminAuth, getAllOrders);
 orderRouter.put('/orders/:id',adminAuth, updateOrderStatus);
 orderRouter.get('/cancel-requests', adminAuth, listCancelRequests);
+orderRouter.get('/refunds', adminAuth, listRefunds);
 orderRouter.put('/cancel-requests/:id/approve', adminAuth, approveCancelRequest);
 orderRouter.put('/cancel-requests/:id/reject', adminAuth, rejectCancelRequest);
 orderRouter.put('/:id/return/approve',adminAuth, approveReturn);

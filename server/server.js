@@ -17,8 +17,8 @@ import adminRouter from './routes/adminRoute.js';
 import cartRouter from './routes/cartRoute.js';
 import productRouter from './routes/productRoute.js';
 import orderRouter from './routes/orderRoute.js';
-import refundRouter from './routes/refundRoute.js';
 import homepageRouter from './routes/homepageRoute.js';
+import policyRouter from './routes/policyRoute.js';
 
 dotenv.config();
 const app= express();
@@ -48,7 +48,11 @@ const corsOrigin = allowedOrigins.length > 0 ? allowedOrigins : true;
 
 connectCloudinry();
 
-app.use(express.json());
+app.use(express.json({
+    verify: (req, _res, buffer) => {
+        req.rawBody = Buffer.from(buffer);
+    },
+}));
 app.use(cors({ origin: corsOrigin, credentials: true }));//, limiter:true
 app.use(limiter);
 app.use(helmet());
@@ -64,8 +68,8 @@ app.use('/api/admin',adminRouter);
 app.use('/api/cart',cartRouter);
 app.use('/api/product',productRouter);
 app.use('/api/order',orderRouter);
-app.use('/api/refund',refundRouter);
 app.use('/api/homepage', homepageRouter);
+app.use('/api/policies', policyRouter);
 
 app.get(/^(?!\/api\/).*/, (req, res) => {
     res.sendFile(path.join(__dirname, '../client/index.html'));

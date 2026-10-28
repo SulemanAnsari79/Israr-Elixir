@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import { getDeliveryLocations } from "../../services/LocationService";
 import { 
   Target01Icon, 
   ViewIcon, 
@@ -15,27 +14,6 @@ import {
 } from 'hugeicons-react';
 
 const About = () => {
-  const [locations, setLocations] = useState({
-    isEnabled: false,
-    cities: [],
-    states: [],
-    countries: [],
-    pincodes: [],
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLocations = async () => {
-      setLoading(true);
-      const data = await getDeliveryLocations();
-      if (data.success && data.locations) {
-        setLocations(data.locations);
-      }
-      setLoading(false);
-    };
-    fetchLocations();
-  }, []);
-
   return (
     <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
       <Navbar />
@@ -100,7 +78,7 @@ const About = () => {
         </section>
 
         {/* 3. CORE PILLARS (Mission/Vision/Values) */}
-        <section className="bg-black py-32">
+        {/* <section className="bg-black py-32">
           <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-12">
             {[
               { icon: <Target01Icon />, title: "Our point of view", text: "Scent is personal. The right one should feel like it was always yours.", color: "text-blue-400" },
@@ -116,7 +94,7 @@ const About = () => {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* 4. WHY CHOOSE US - BENTO GRID */}
         <section className="py-32 max-w-7xl mx-auto px-6">

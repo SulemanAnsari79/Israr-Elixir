@@ -1,72 +1,35 @@
-import { getAuthCookie, clearAuthCookies } from "./AuthCookies";
 import axios from "axios";
 
-// Backend base URL
 const RAW_BASE_URL = import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
-
-if (!RAW_BASE_URL && import.meta.env.PROD) {
-  console.error("Missing VITE_BACKEND_URL in production environment.");
-}
 const TRIMMED_BASE_URL = RAW_BASE_URL.replace(/\/+$/, "");
-const API_BASE_URL = TRIMMED_BASE_URL.endsWith("/api")
-  ? TRIMMED_BASE_URL
-  : `${TRIMMED_BASE_URL}/api`;
+const API_BASE_URL = TRIMMED_BASE_URL.endsWith("/api") ? TRIMMED_BASE_URL : `${TRIMMED_BASE_URL}/api`;
 
-// Create Axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  timeout: 10000, // optional but recommended
+  headers: { "Content-Type": "application/json" },
+  timeout: 10000,
+  withCredentials: true,
 });
 
-// =========================
-// Request Interceptor
-// =========================
-api.interceptors.request.use(
-  (config) => {
-    if (typeof config.url === "string" && config.url.startsWith("/api/")) {
-      config.url = config.url.replace(/^\/api\//, "/");
-    }
-
-    const token = getAuthCookie("token");
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => {
-    console.error("Request Error:", error);
-    return Promise.reject(error);
+api.interceptors.request.use((config) => {
+  if (typeof config.url === "string" && config.url.startsWith("/api/")) {
+    config.url = config.url.replace(/^\/api\//, "/");
   }
-);
+  return config;
+});
 
-// =========================
-// Response Interceptor
-// =========================
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const status = error.response?.status;
-    const hadToken = !!getAuthCookie("token");
-
-    if (status === 401) {
-      clearAuthCookies();
-
-      // Silently redirect if there was a stale token
-      if (hadToken && window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
-    } else if (status) {
-      console.error("API Error:", status, error.response?.data?.message);
+    if (
+      error.response?.status === 401 &&
+      !error.config?.skipAuthRedirect &&
+      window.location.pathname !== "/login"
+    ) {
+      window.location.href = "/login";
     }
-
     return Promise.reject(error);
   }
 );
-
 
 export default api;

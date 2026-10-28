@@ -1,17 +1,6 @@
-const cookieOptions = "path=/; SameSite=Lax";
-
-export const getAuthCookie = (name) => {
-  const prefix = `${name}=`;
-  const entry = document.cookie.split("; ").find((cookie) => cookie.startsWith(prefix));
-  return entry ? decodeURIComponent(entry.slice(prefix.length)) : null;
+// Authentication tokens are HttpOnly cookies set and cleared by the server.
+export const getAuthCookie = () => null;
+export const setAuthCookie = () => {
+  throw new Error("Authentication cookies must be set by the server");
 };
-
-export const setAuthCookie = (name, value) => {
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; ${cookieOptions}`;
-};
-
-export const clearAuthCookies = () => {
-  document.cookie = `token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${cookieOptions}`;
-  document.cookie = `user=; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${cookieOptions}`;
-};
+export const clearAuthCookies = () => {};

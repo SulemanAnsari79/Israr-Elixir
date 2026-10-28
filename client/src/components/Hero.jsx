@@ -1,7 +1,7 @@
-import { useContext, useEffect, useState } from 'react';
+import { createElement, useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, Gift, Heart, Leaf, Menu, PackageCheck, ShieldCheck, Sparkles, Truck } from 'lucide-react';
-import { AuthContext } from '../context/AuthContext.jsx';
+import { AuthContext } from '../context/AuthContextDefinition.js';
 import api from '../services/Api.js';
 
 const fallbackSlide = {
@@ -76,8 +76,8 @@ export default function Hero() {
     {/* Category Section */}
     <section className="mx-auto -mt-5 relative z-10 max-w-7xl px-4 md:px-6">
       <div className="grid grid-cols-3 overflow-hidden rounded-md border border-[#e9e0d7] bg-[#fbf8f4] shadow-sm md:grid-cols-6">
-        {categoryItems.map(({ label, match, icon: Icon }) => <Link key={label} to={categoryLink(match)} className="group flex min-h-24 flex-col items-center justify-center gap-2 border-r border-[#eee7df] px-2 py-4 text-center last:border-0 hover:bg-white md:min-h-28">
-          <Icon size={19} strokeWidth={1.35} className="text-[#6d5945] transition-transform group-hover:-translate-y-0.5" />
+        {categoryItems.map(({ label, match, icon }) => <Link key={label} to={categoryLink(match)} className="group flex min-h-24 flex-col items-center justify-center gap-2 border-r border-[#eee7df] px-2 py-4 text-center last:border-0 hover:bg-white md:min-h-28">
+          {createElement(icon, { size: 19, strokeWidth: 1.35, className: 'text-[#6d5945] transition-transform group-hover:-translate-y-0.5' })}
           <span className="max-w-24 text-[8px] font-bold uppercase leading-3 tracking-[.1em] md:text-[9px]">{label}</span>
         </Link>)}
       </div>
@@ -152,8 +152,8 @@ export default function Hero() {
         { icon: Sparkles, title: 'Discovery samples', text: 'Find your next favorite' }, 
         { icon: PackageCheck, title: 'Easy returns', text: 'A simple 7 day return policy' }, 
         { icon: ShieldCheck, title: 'Secure checkout', text: 'Protected payments' }
-      ].map(({ icon: Icon, title, text }) => 
-      <div key={title} className="flex items-center gap-3"><Icon size={18} strokeWidth={1.35} className="shrink-0 text-[#7b654c]" /><div>
+      ].map(({ icon, title, text }) =>
+      <div key={title} className="flex items-center gap-3">{createElement(icon, { size: 18, strokeWidth: 1.35, className: 'shrink-0 text-[#7b654c]' })}<div>
       <p className="text-[8px] font-bold uppercase tracking-[.1em]">{title}</p>
       <p className="mt-1 text-[9px] text-[#81776d]">{text}</p></div></div>)}
     </section>

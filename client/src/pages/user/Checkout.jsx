@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "../../context/AuthContextDefinition";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import {  
@@ -99,19 +99,6 @@ const Checkout = () => {
 
     setIsLoading(true);
     try {
-      if (paymentMethod === "cod") {
-        const response = await axios.post(`${normalizedBackendUrl}/api/order/placeorder`, {
-          items: orderItems,
-          paymentMethod: "Cash On Delivery",
-          shippingDetails: shipping,
-        }, { headers: { Authorization: `Bearer ${token}` } });
-
-        if (response.data.success) {
-          toast.success("Order Placed!");
-          clearCart();
-          navigate("/place-order");
-        }
-      } else {
         const sdkReady = await loadRazorpayScript();
         if (!sdkReady) return toast.error("Gateway error");
         
@@ -137,9 +124,9 @@ const Checkout = () => {
             }
           };
           new window.Razorpay(options).open();
-        }
+        
       }
-    } catch (e) { toast.error("Order failed"); } finally { setIsLoading(false); }
+    } catch { toast.error("Order failed"); } finally { setIsLoading(false); }
   };
 
   return (
@@ -152,17 +139,14 @@ const Checkout = () => {
                 <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Secure <span className="text-[#1A56DB]">Checkout</span></h1>
                 <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">A few details before your fragrance arrives</p>
             </div>
-            <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-2xl border border-slate-100">
-                {/* <Secure02Icon size={20} className="text-[#0D9488]" variant="bulk" /> */}
-                <span className="text-xs font-black text-slate-600 uppercase">Bank-grade Encryption</span>
-            </div>
+             
         </div>
 
         <div className="grid lg:grid-cols-12 gap-10">
           
           {/* LEFT: FORMS */}
           <div className="lg:col-span-8 space-y-10">
-            <div className="bg-white p-8 md:p-12 rounded-[3rem] border border-slate-100 shadow-sm">
+            <div className="bg-white p-8 md:p-12 rounded-xl border border-slate-100 shadow-sm">
               <h2 className="text-xl font-black text-slate-900 mb-10 flex items-center gap-3">
                 {/* <TruckDelivery01Icon size={24} className="text-[#1A56DB]" variant="bulk" /> */}
                 Delivery Information
@@ -197,17 +181,16 @@ const Checkout = () => {
               </div>
             </div>
 
-            <div className="bg-white p-8 md:p-12 rounded-[3rem] border border-slate-100 shadow-sm">
+            <div className="bg-white p-8 md:p-12 rounded-xl border border-slate-100 shadow-sm">
               <h2 className="text-xl font-black text-slate-900 mb-10">Select Payment Method</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {[
-                  { id: 'cod', label: 'Cash on Delivery', icon: <Wallet01Icon size={24}/>, desc: 'Pay when your order arrives' },
                   { id: 'razorpay', label: 'Online Payment', icon: <CreditCardIcon size={24}/>, desc: 'Cards, UPI, Wallets' }
                 ].map((method) => (
                   <button 
                     key={method.id} 
                     onClick={() => setPaymentMethod(method.id)}
-                    className={`p-6 rounded-[2rem] border-2 text-left transition-all duration-300 ${paymentMethod === method.id ? 'border-[#1A56DB] bg-blue-50/50' : 'border-slate-100 hover:border-slate-200'}`}
+                    className={`p-6 rounded-xl border-1 text-left transition-all duration-300 ${paymentMethod === method.id ? 'border-[#1A56DB] bg-blue-50/50' : 'border-slate-100 hover:border-slate-200'}`}
                   >
                     <div className={`${paymentMethod === method.id ? 'text-[#1A56DB]' : 'text-slate-400'} mb-4 transition-colors`}>{method.icon}</div>
                     <h4 className="font-black text-slate-900 tracking-tight">{method.label}</h4>
@@ -218,9 +201,9 @@ const Checkout = () => {
             </div>
           </div>
 
-          {/* RIGHT: ORDER SUMMARY BENTO */}
+          {/* RIGHT: ORDER SUMMARY */}
           <div className="lg:col-span-4">
-            <div className="bg-slate-900 rounded-[3rem] p-10 text-white shadow-2xl sticky top-32 overflow-hidden relative">
+            <div className="bg-black rounded-[3rem] p-10 text-white shadow-2xl sticky top-32 overflow-hidden relative">
               {/* Abstract bg element */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-20 -mr-16 -mt-16"></div>
               
@@ -239,18 +222,18 @@ const Checkout = () => {
               </div>
 
               <div className="space-y-4 mb-10 relative">
-                <div className="flex justify-between text-slate-400 text-xs font-black uppercase tracking-widest">
+                <div className="flex justify-between text-white text-xs font-black uppercase tracking-widest">
                   <span>Subtotal</span>
                   <span>₹{cartTotal}</span>
                 </div>
-                <div className="flex justify-between text-[#0D9488] text-xs font-black uppercase tracking-widest">
+                <div className="flex justify-between text-white text-xs font-black uppercase tracking-widest">
                   <span>Delivery Fee</span>
                   <span>{delivery_fee === 0 ? "FREE" : `₹${delivery_fee}`}</span>
                 </div>
-                <div className="h-[1px] bg-white/10 my-4"></div>
+                <div className="h-px bg-white/10 my-4"></div>
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-black tracking-tight">Total Due</span>
-                  <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">
+                  <span className="text-lg font-black tracking-tight">Total </span>
+                  <span className="text-3xl text-white font-black text-transparent bg-clip-text  ">
                     ₹{totalAmount}
                   </span>
                 </div>
@@ -259,7 +242,7 @@ const Checkout = () => {
               <button
                 onClick={handlePlaceOrder}
                 disabled={isLoading || orderItems.length === 0}
-                className="w-full relative group bg-[#1A56DB] text-white py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/40 hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50"
+                className="w-full relative group bg-white text-black py-6 rounded-xl font-black text-xs uppercase tracking-xl  hover:text-lg flex items-center justify-center gap-3"
               >
                 <span className="flex items-center justify-center gap-3">
                     {isLoading ? "Authenticating..." : "Finalize Order"}
@@ -267,7 +250,7 @@ const Checkout = () => {
                 </span>
               </button>
               
-              <p className="text-center text-[10px] font-bold text-slate-500 mt-6 tracking-widest uppercase">
+              <p className="text-center text-[10px] font-bold text-slate-400 mt-6 tracking-widest uppercase">
                 Estimated Delivery: 24-48 Hours
               </p>
             </div>
@@ -276,11 +259,6 @@ const Checkout = () => {
       </main>
 
       <Footer />
-      
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-      `}</style>
     </div>
   );
 };

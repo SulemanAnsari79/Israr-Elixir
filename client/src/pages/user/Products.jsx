@@ -1,7 +1,7 @@
 import { useContext, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { AuthContext } from '../../context/AuthContext.jsx';
+import { AuthContext } from '../../context/AuthContextDefinition.js';
 import Navbar from '../../components/Navbar.jsx';
 import Footer from '../../components/Footer.jsx';
 import ProductCard from '../../components/ProductCard.jsx';
@@ -101,8 +101,7 @@ export default function Products() {
               <Search size={16} strokeWidth={1.6} className="text-[#857665]" />
               <input type="search" aria-label="Search fragrances" placeholder="Search fragrances" value={search} onChange={(event) => setSearch(event.target.value)} className="w-full border-0 bg-transparent p-1 text-sm text-[#342a20] outline-none placeholder:text-[#9d9388] focus:ring-0" />
             </label>
-            <div className="flex items-center   gap-">
-              {/* <h3 className="mb-3 text-md font-semibold uppercase tracking-[.18em] text-[#8b7862]">For</h3> */}
+            <div className="flex items-center gap-">
               <div className="flex gap-10">
                 {audienceOptions.map((item) => 
                 <button key={item} type="button" aria-pressed={audience === item} onClick={() => setAudience(item)} className={`flex w-full items-center justify-between gap-3 py-1.5 text-left text-xs transition ${audience === item ? 'font-semibold text-[#302a23]' : 'text-[#766c61] hover:text-[#302a23]'}`}>

@@ -235,8 +235,8 @@ const ManageUsers = () => {
       )}
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {/* Search */}
           <div className="md:col-span-2 relative">
             <FiSearch className="absolute left-3 top-3.5 text-gray-400" />
@@ -245,7 +245,7 @@ const ManageUsers = () => {
               placeholder="Search by name, email, or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -259,7 +259,6 @@ const ManageUsers = () => {
             >
               <option value="all">All Roles</option>
               <option value="user">User</option>
-              <option value="doctor">Doctor</option>
               <option value="admin">Admin</option>
             </select>
           </div>
@@ -294,7 +293,7 @@ const ManageUsers = () => {
         <div className="overflow-x-auto">
           {filteredUsers.length > 0 ? (
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-100 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
@@ -308,7 +307,7 @@ const ManageUsers = () => {
                 {filteredUsers.map((user) => (
                   <tr
                     key={user._id}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition"
+                    className="border-b border-gray-100   transition"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -327,7 +326,7 @@ const ManageUsers = () => {
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-400 text-gray-800">
                           <FiX size={14} className="mr-1" />
                           Inactive
                         </span>
@@ -340,14 +339,14 @@ const ManageUsers = () => {
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => handleViewUser(user)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          className="p-2 rounded-lg transition"
                           title="View"
                         >
                           <FiEye size={18} />
                         </button>
                         <button
                           onClick={() => handleEditUser(user)}
-                          className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                          className="p-2 text-blue-400 hover:bg-orange-100 rounded-lg transition"
                           title="Edit"
                         >
                           <FiEdit2 size={18} />
@@ -358,8 +357,8 @@ const ManageUsers = () => {
                           }
                           className={`p-2 ${
                             user.isActive
-                              ? "text-red-600 hover:bg-red-50"
-                              : "text-green-600 hover:bg-green-50"
+                              ? "hover:text-red-600 hover:bg-red-200"
+                              : "text-green-600  "
                           } rounded-lg transition`}
                           title={user.isActive ? "Deactivate" : "Activate"}
                         >
@@ -371,10 +370,10 @@ const ManageUsers = () => {
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          className="p-2 hover:text-red-600 hover:bg-red-200 rounded-lg transition"
                           title="Delete"
                         >
-                          <FiTrash2 size={18} />
+                        <FiTrash2 size={18} />
                         </button>
                       </div>
                     </td>

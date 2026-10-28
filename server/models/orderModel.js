@@ -11,6 +11,23 @@ const orderSchema = new mongoose.Schema({
   razorpayOrderId: { type: String, default: '' },
   razorpayPaymentId: { type: String, default: '' },
   razorpaySignature: { type: String, default: '' },
+  refund: {
+    status: {
+      type: String,
+      enum: ['None', 'Initiated', 'Processed', 'Failed'],
+      default: 'None'
+    },
+    amount: { type: Number, default: 0 },
+    currency: { type: String, default: 'INR' },
+    razorpayRefundId: { type: String, default: '' },
+    reason: { type: String, default: '' },
+    source: { type: String, enum: ['Cancellation', 'Return', ''], default: '' },
+    initiatedAt: { type: Date, default: null },
+    processedAt: { type: Date, default: null },
+    failedAt: { type: Date, default: null },
+    failureReason: { type: String, default: '' },
+    webhookUpdatedAt: { type: Date, default: null }
+  },
   paidAt: { type: Date },
   deliveredAt: { type: Date },
   cancelReason: { type: String, default: '' },
@@ -35,19 +52,6 @@ const orderSchema = new mongoose.Schema({
     requestDate: { type: Date },
     approvalDate: { type: Date },
     adminNotes: { type: String, default: '' }
-  },
-  codRefund: {
-    status: { type: String, enum: ["None", "Requested", "Approved", "Rejected", "Refunded", "Failed"], default: "None" },
-    amount: { type: Number, default: 0 },
-    reason: { type: String, default: "" },
-    requestedAt: { type: Date, default: null },
-    decisionAt: { type: Date, default: null },
-    refundedAt: { type: Date, default: null },
-    adminNotes: { type: String, default: "" },
-    decidedBy: { type: String, default: "" },
-    payoutMethod: { type: String, enum: ["", "UPI", "Bank", "Cash", "Wallet"], default: "" },
-    payoutReference: { type: String, default: "" },
-    failureReason: { type: String, default: "" }
   },
   returnDeadlineDate: { type: Date },
   shippingDetails:{

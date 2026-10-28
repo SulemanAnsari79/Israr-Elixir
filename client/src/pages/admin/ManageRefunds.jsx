@@ -1,372 +1,163 @@
-import { getAuthCookie } from "../../services/AuthCookies";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../../services/Api";
- 
+
+const statusStyles = {
+  Initiated: "bg-yellow-100 text-yellow-800",
+  Processed: "bg-green-100 text-green-800",
+  Failed: "bg-red-100 text-red-800",
+};
+
+const formatDate = (value) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+};
+
+const formatAmount = (amount, currency = "INR") =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: currency || "INR",
+  }).format(Number(amount || 0));
 
 const ManageRefunds = () => {
-   
-  const [cancelRequests, setCancelRequests] = useState([]);
-  const [codOrders, setCodOrders] = useState([]);
+  const [refunds, setRefunds] = useState([]);
+  const [status, setStatus] = useState("all");
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [codStatusFilter, setCodStatusFilter] = useState("all");
-  const [actionKey, setActionKey] = useState("");
-  const [payoutDraft, setPayoutDraft] = useState({});
 
-  const authHeaders = { headers: { Authorization: `Bearer ${getAuthCookie("token")}` },};
-
-  const fetchRefundData = async () => {
+  const fetchRefunds = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
-
-      const [ codRes, cancelRes] = await Promise.all([
-       
-        api.get(
-          `/api/refund/admin/cod-orders${
-            codStatusFilter !== "all" ? `?status=${encodeURIComponent(codStatusFilter)}` : ""
-          }`,
-          authHeaders
-        ),
-        api.get("/api/order/cancel-requests?status=Requested", authHeaders),
-      ]);
-      setCodOrders(codRes?.data?.orders || []);
-      setCancelRequests(cancelRes?.data?.orders || []);
+      const response = await api.get(`/api/order/refunds?status=${status}`);
+      setRefunds(response?.data?.orders || []);
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to load refund control data");
+      setError(err?.response?.data?.message || "Failed to load refund data");
     } finally {
       setLoading(false);
     }
-  };
+  }, [status]);
 
   useEffect(() => {
-    fetchRefundData();
-  }, [codStatusFilter]);
+    fetchRefunds();
+  }, [fetchRefunds]);
 
-  // const appointmentRows = useMemo(() => appointmentRefunds, [appointmentRefunds]);
-
-  const codRows = useMemo(() => {
-    if (codStatusFilter === "all") return codOrders;
-    return codOrders.filter((order) => String(order?.codRefund?.status || "None") === codStatusFilter);
-  }, [codOrders, codStatusFilter]);
-
-  const setTransientSuccess = (msg) => {
-    setSuccess(msg);
-    setTimeout(() => setSuccess(""), 2500);
-  };
-
-  const decideCancelRequest = async (orderId, action) => {
-    const draft = payoutDraft[orderId] || {};
-    const key = `${orderId}-${action}`;
-
-    try {
-      setActionKey(key);
-      setError("");
-      await api.put(
-        `/api/order/cancel-requests/${orderId}/${action}`,
-        { adminNotes: String(draft.adminNotes || draft.reason || "").trim() },
-        authHeaders
-      );
-      setTransientSuccess(`Cancellation request ${action}d successfully`);
-      await fetchRefundData();
-    } catch (err) {
-      setError(err?.response?.data?.message || `Failed to ${action} cancellation request`);
-    } finally {
-      setActionKey("");
-    }
-  };
-
-  const requestCodRefund = async (orderId) => {
-    const draft = payoutDraft[orderId] || {};
-    const reason = String(draft.reason || "").trim();
-    const amount = Number(draft.amount || 0);
-    const key = `${orderId}-request`;
-
-    try {
-      setActionKey(key);
-      setError("");
-      await api.post(
-        `/api/refund/admin/cod-orders/${orderId}/request`,
-        {
-          reason,
-          amount: amount > 0 ? amount : undefined,
-        },
-        authHeaders
-      );
-      setTransientSuccess("COD refund requested successfully");
-      await fetchRefundData();
-    } catch (err) {
-      setError(err?.response?.data?.message || "Failed to request COD refund");
-    } finally {
-      setActionKey("");
-    }
-  };
-
-  const decideCodRefund = async (orderId, action) => {
-    const draft = payoutDraft[orderId] || {};
-    const key = `${orderId}-${action}`;
-
-    try {
-      setActionKey(key);
-      setError("");
-      await api.put(
-        `/api/refund/admin/cod-orders/${orderId}/decision?action=${action}`,
-        {
-          adminNotes: String(draft.adminNotes || "").trim(),
-          payoutMethod: draft.payoutMethod,
-          payoutReference: String(draft.payoutReference || "").trim(),
-        },
-        authHeaders
-      );
-      setTransientSuccess(`COD refund ${action}d successfully`);
-      await fetchRefundData();
-    } catch (err) {
-      setError(err?.response?.data?.message || `Failed to ${action} COD refund`);
-    } finally {
-      setActionKey("");
-    }
-  };
-
-  if (loading) {
-    return <div className="p-6">Loading refund control...</div>;
-  }
+  const filteredRefunds = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return refunds;
+    return refunds.filter((order) =>
+      [
+        order?._id,
+        order?.refund?.razorpayRefundId,
+        order?.razorpayPaymentId,
+        order?.shippingDetails?.fullName,
+        order?.shippingDetails?.email,
+      ].some((value) => String(value || "").toLowerCase().includes(term))
+    );
+  }, [refunds, search]);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Refund Control</h1>
-        <p className="text-gray-600 mt-1">
-          Securely review appointment cancellation refunds and COD refund payouts.
+        <h1 className="text-3xl font-bold text-gray-900">Refunds</h1>
+        <p className="mt-1 text-gray-600">
+          Track refunds initiated through Razorpay. The status is updated by Razorpay webhooks.
         </p>
       </div>
 
-      {error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">{error}</div> : null}
-      {success ? <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-green-700">{success}</div> : null}
-
-      <section className="rounded-xl bg-white shadow p-4 space-y-4">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <h2 className="text-xl font-semibold text-gray-900">Order Cancellation Requests</h2>
-          <span className="text-sm text-gray-500">Pending approval queue</span>
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">
+          {error}
         </div>
+      )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left p-3">Order ID</th>
-                <th className="text-left p-3">Customer</th>
-                <th className="text-left p-3">Status</th>
-                <th className="text-left p-3">Reason</th>
-                <th className="text-left p-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cancelRequests.length === 0 ? (
-                <tr>
-                  <td className="p-3 text-gray-500" colSpan={5}>No pending cancellation requests</td>
-                </tr>
-              ) : (
-                cancelRequests.map((order) => {
-                  const status = String(order?.cancelRequest?.status || "None");
-                  return (
-                    <tr key={order._id} className="border-t">
-                      <td className="p-3">{order._id?.slice(0, 10)}...</td>
-                      <td className="p-3">{order?.shippingDetails?.fullName || order?.user?.name || "N/A"}</td>
-                      <td className="p-3">{status}</td>
-                      <td className="p-3">{order?.cancelRequest?.reason || "N/A"}</td>
-                      <td className="p-3">
-                        <textarea
-                          value={payoutDraft[order._id]?.adminNotes || ""}
-                          onChange={(e) =>
-                            setPayoutDraft((prev) => ({
-                              ...prev,
-                              [order._id]: {
-                                ...prev[order._id],
-                                adminNotes: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Admin note"
-                          className="w-full border rounded p-2 mb-2"
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            className="bg-green-600 text-white px-3 py-1 rounded disabled:bg-green-300"
-                            disabled={actionKey === `${order._id}-approve`}
-                            onClick={() => decideCancelRequest(order._id, "approve")}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            className="bg-red-600 text-white px-3 py-1 rounded disabled:bg-red-300"
-                            disabled={actionKey === `${order._id}-reject`}
-                            onClick={() => decideCancelRequest(order._id, "reject")}
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="rounded-xl bg-white shadow p-4 space-y-4">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <h2 className="text-xl font-semibold text-gray-900">COD Refund Control</h2>
+      <section className="rounded-xl bg-white p-4 shadow">
+        <div className="mb-4 flex flex-wrap gap-3">
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search order, refund, payment, or customer"
+            className="min-w-[280px] flex-1 rounded border p-2"
+          />
           <select
-            value={codStatusFilter}
-            onChange={(e) => setCodStatusFilter(e.target.value)}
-            className="border rounded-lg px-3 py-2"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            className="rounded border p-2"
           >
-            <option value="all">All</option>
-            <option value="Requested">Requested</option>
-            <option value="Refunded">Refunded</option>
-            <option value="Rejected">Rejected</option>
+            <option value="all">All statuses</option>
+            <option value="Initiated">Initiated</option>
+            <option value="Processed">Processed</option>
             <option value="Failed">Failed</option>
-            <option value="None">None</option>
           </select>
+          <button
+            type="button"
+            onClick={fetchRefunds}
+            className="rounded bg-gray-900 px-4 py-2 text-white"
+          >
+            Refresh
+          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left p-3">Order ID</th>
-                <th className="text-left p-3">Customer</th>
-                <th className="text-left p-3">Order Status</th>
-                <th className="text-left p-3">Payment Status</th>
-                <th className="text-left p-3">COD Refund</th>
-                <th className="text-left p-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {codRows.length === 0 ? (
+        {loading ? (
+          <p className="p-3 text-gray-500">Loading refunds...</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td className="p-3 text-gray-500" colSpan={6}>No COD refund items found</td>
+                  <th className="p-3">Order ID</th>
+                  <th className="p-3">Customer</th>
+                  <th className="p-3">Refund ID</th>
+                  <th className="p-3">Initiated</th>
+                  <th className="p-3">Amount</th>
+                  <th className="p-3">Source</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Completed / Error</th>
                 </tr>
-              ) : (
-                codRows.map((order) => {
-                  const codRefundStatus = String(order?.codRefund?.status || "None");
-                  const canRequest = codRefundStatus === "None" || codRefundStatus === "Rejected" || codRefundStatus === "Failed";
-                  const canDecide = codRefundStatus === "Requested" || codRefundStatus === "Approved" || codRefundStatus === "Failed";
-                  const draft = payoutDraft[order._id] || {};
-
-                  return (
-                    <tr key={order._id} className="border-t">
-                      <td className="p-3">{order._id?.slice(0, 10)}...</td>
-                      <td className="p-3">{order?.shippingDetails?.fullName || order?.user?.name || "N/A"}</td>
-                      <td className="p-3">{order?.status}</td>
-                      <td className="p-3">{order?.paymentStatus}</td>
-                      <td className="p-3">
-                        {codRefundStatus} (Rs. {Number(order?.codRefund?.amount || order?.totalAmount || 0).toFixed(2)})
-                      </td>
-                      <td className="p-3 space-y-2 min-w-72">
-                        <input
-                          type="text"
-                          placeholder="Reason / Admin note"
-                          value={draft.reason || draft.adminNotes || ""}
-                          onChange={(e) =>
-                            setPayoutDraft((prev) => ({
-                              ...prev,
-                              [order._id]: {
-                                ...prev[order._id],
-                                reason: e.target.value,
-                                adminNotes: e.target.value,
-                              },
-                            }))
-                          }
-                          className="w-full border rounded p-2"
-                        />
-                        <div className="grid grid-cols-3 gap-2">
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="Amount"
-                            value={draft.amount || ""}
-                            onChange={(e) =>
-                              setPayoutDraft((prev) => ({
-                                ...prev,
-                                [order._id]: { ...prev[order._id], amount: e.target.value },
-                              }))
-                            }
-                            className="border rounded p-2"
-                          />
-                          <select
-                            value={draft.payoutMethod || ""}
-                            onChange={(e) =>
-                              setPayoutDraft((prev) => ({
-                                ...prev,
-                                [order._id]: { ...prev[order._id], payoutMethod: e.target.value },
-                              }))
-                            }
-                            className="border rounded p-2"
-                          >
-                            <option value="">Method</option>
-                            <option value="UPI">UPI</option>
-                            <option value="Bank">Bank</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Wallet">Wallet</option>
-                          </select>
-                          <input
-                            type="text"
-                            placeholder="Reference"
-                            value={draft.payoutReference || ""}
-                            onChange={(e) =>
-                              setPayoutDraft((prev) => ({
-                                ...prev,
-                                [order._id]: { ...prev[order._id], payoutReference: e.target.value },
-                              }))
-                            }
-                            className="border rounded p-2"
-                          />
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
-                          {canRequest ? (
-                            <button
-                              className="bg-indigo-600 text-white px-3 py-1 rounded disabled:bg-indigo-300"
-                              disabled={actionKey === `${order._id}-request`}
-                              onClick={() => requestCodRefund(order._id)}
-                            >
-                              Request Refund
-                            </button>
-                          ) : null}
-
-                          {canDecide ? (
-                            <>
-                              <button
-                                className="bg-green-600 text-white px-3 py-1 rounded disabled:bg-green-300"
-                                disabled={actionKey === `${order._id}-approve`}
-                                onClick={() => decideCodRefund(order._id, "approve")}
-                              >
-                                Mark Refunded
-                              </button>
-                              <button
-                                className="bg-red-600 text-white px-3 py-1 rounded disabled:bg-red-300"
-                                disabled={actionKey === `${order._id}-reject`}
-                                onClick={() => decideCodRefund(order._id, "reject")}
-                              >
-                                Reject
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-xs text-gray-500">No action available</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredRefunds.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-3 text-gray-500">
+                      No refunds found
+                    </td>
+                  </tr>
+                ) : (
+                  filteredRefunds.map((order) => {
+                    const refund = order.refund || {};
+                    return (
+                      <tr key={order._id} className="border-t align-top">
+                        <td className="p-3">
+                          <div className="font-medium">{order._id}</div>
+                          <div className="text-xs text-gray-500">{order.razorpayPaymentId || "No payment ID"}</div>
+                        </td>
+                        <td className="p-3">
+                          <div>{order.shippingDetails?.fullName || order.user?.name || "N/A"}</div>
+                          <div className="text-xs text-gray-500">{order.shippingDetails?.email || order.user?.email || ""}</div>
+                        </td>
+                        <td className="p-3">{refund.razorpayRefundId || "Pending from Razorpay"}</td>
+                        <td className="p-3 whitespace-nowrap">{formatDate(refund.initiatedAt)}</td>
+                        <td className="p-3 whitespace-nowrap">{formatAmount(refund.amount, refund.currency)}</td>
+                        <td className="p-3">{refund.source || "—"}</td>
+                        <td className="p-3">
+                          <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusStyles[refund.status] || "bg-gray-100 text-gray-700"}`}>
+                            {refund.status || "Unknown"}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          {refund.status === "Failed"
+                            ? refund.failureReason || "Refund failed"
+                            : formatDate(refund.processedAt)}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

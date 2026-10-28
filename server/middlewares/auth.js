@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
+import { AUTH_COOKIE_NAME } from "../utils/authCookie.js";
 
 const auth = async (req,res,next)=>{
   try{
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = req.cookies?.[AUTH_COOKIE_NAME];
  
     if(!token){
       return res.status(401).json({success:false, message:"Not logged in"});

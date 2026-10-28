@@ -69,6 +69,10 @@ body { margin: 0; background: #f7f2ec; }
 .store-page select:focus { --tw-ring-color: rgb(128 99 69 / .2); }
 .store-page ::selection { background: #d8c4aa; color: #29251f; }
 
+/* Keep the profile workspace centered and readable on laptop screens. */
+.profile-layout { width: min(100%, 1280px); }
+.profile-page .profile-layout > .grid { align-items: start; }
+
 /* Admin workspace keeps the same warm material palette with denser tools. */
 .admin-shell { min-height: 100vh; background: #f4efe8; color: #302a23; }
 .admin-shell [class*="bg-white"] { background-color: #fffdfa !important; }

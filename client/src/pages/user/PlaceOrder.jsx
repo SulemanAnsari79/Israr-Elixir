@@ -35,7 +35,7 @@ const PlaceOrder = () => {
       const response = await OrderService.getUserOrders();
       if (response.success) setOrders(response.orders || []);
       else setError(response.message || "Failed to load orders");
-    } catch (err) {
+    } catch {
       setError("Could not load your order history.");
     } finally {
       setOrdersLoading(false);
@@ -206,76 +206,75 @@ const PlaceOrder = () => {
             </Link>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="grid gap-4 lg:grid-cols-2">
             {orders.map((order) => {
               const status = getStatusConfig(order.status);
               return (
-                <div key={order._id} className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.02)] hover:shadow-xl transition-all group">
-                  <div className="flex flex-wrap justify-between items-center gap-4 mb-8 pb-6 border-b border-slate-50">
-                    <div className="flex items-center gap-4">
-                        <div className={`p-3 ${status.bg} ${status.color} rounded-2xl`}>
-                            <PackageIcon size={24} variant="bulk" />
+                <div key={order._id} className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-[0_6px_24px_rgba(0,0,0,0.03)] hover:shadow-lg transition-all group">
+                  <div className="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-50">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className={`shrink-0 p-2 ${status.bg} ${status.color} rounded-xl`}>
+                            <PackageIcon size={19} variant="bulk" />
                         </div>
-                        <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Order Ref</p>
-                            <p className="text-sm font-black text-slate-900 leading-none">#{order._id?.substring(0, 12).toUpperCase()}</p>
+                        <div className="min-w-0">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Order Ref</p>
+                            <p className="text-xs font-black text-slate-900 truncate">#{order._id?.substring(0, 12).toUpperCase()}</p>
                         </div>
                     </div>
-                    <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${status.bg} ${status.color}`}>
+                    <div className={`shrink-0 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${status.bg} ${status.color}`}>
                         {order.status}
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-12 gap-8 items-center">
-                    <div className="md:col-span-8">
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight leading-tight">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                        <h3 className="text-base font-black text-slate-900 tracking-tight leading-snug line-clamp-2">
                             {order.items?.[0]?.name || 'Health Package'}
-                            {order.items?.length > 1 && <span className="text-[#1A56DB]"> + {order.items.length - 1} more items</span>}
+                            {order.items?.length > 1 && <span className="text-[#1A56DB]"> + {order.items.length - 1} more</span>}
                         </h3>
-                        <div className="flex items-center gap-4 mt-4">
-                            <span className="text-2xl font-black text-slate-900 font-mono">₹{order.totalAmount?.toFixed(2)}</span>
-                            <div className="h-4 w-px bg-slate-100"></div>
-                            <span className={`text-[10px] font-black uppercase tracking-widest ${order.paymentStatus === 'Paid' ? 'text-emerald-500' : 'text-orange-500'}`}>
+                        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2">
+                            <span className="text-lg font-black text-slate-900 font-mono">₹{order.totalAmount?.toFixed(2)}</span>
+                            <span className={`text-[9px] font-black uppercase tracking-widest ${order.paymentStatus === 'Paid' ? 'text-emerald-500' : 'text-orange-500'}`}>
                               {order.paymentStatus}
                             </span>
                         </div>
                     </div>
 
-                    <div className="md:col-span-4 flex flex-wrap md:justify-end gap-3">
+                    <div className="shrink-0 flex justify-end">
                         {order.deliveredAt && (
-                          <div className="flex items-center gap-2 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100">
-                             <Tick02Icon size={14} className="text-emerald-600" variant="bulk" />
-                             <span className="text-[10px] font-black text-emerald-700 uppercase">Received {new Date(order.deliveredAt).toLocaleDateString("en-GB")}</span>
+                          <div className="flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100">
+                             <Tick02Icon size={12} className="text-emerald-600" variant="bulk" />
+                             <span className="text-[9px] font-black text-emerald-700 uppercase">{new Date(order.deliveredAt).toLocaleDateString("en-GB")}</span>
                           </div>
                         )}
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-3 pt-8 mt-8 border-t border-slate-50">
+                  <div className="flex flex-wrap items-center gap-2 pt-4 mt-4 border-t border-slate-50">
                     {hasPendingCancelRequest(order) ? (
-                      <div className="flex items-center gap-2 px-6 py-3 bg-amber-50 text-amber-700 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-amber-100">
-                        <InformationCircleIcon size={16} variant="bulk" /> Cancellation Pending Admin Approval
+                      <div className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 rounded-xl text-[9px] font-black uppercase tracking-widest border border-amber-100">
+                        <InformationCircleIcon size={14} variant="bulk" /> Cancellation pending
                       </div>
                     ) : ['Pending', 'Processing'].includes(order.status) ? (
-                      <button onClick={() => setShowCancelModal(order._id)} className="flex items-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all">
-                        <Cancel01Icon size={16} /> Cancel Order
+                      <button onClick={() => setShowCancelModal(order._id)} className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 text-rose-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all">
+                        <Cancel01Icon size={14} /> Cancel
                       </button>
                     ) : null}
                     {order.status === 'Delivered' && getRemainingDays(order) > 0 && (
                       <>
-                        <button onClick={() => setShowReturnModal(order._id)} className="flex items-center gap-2 px-6 py-3 bg-amber-50 text-amber-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-amber-600 hover:text-white transition-all">
-                          <PackageReceiveIcon size={16} /> Return Meds
+                        <button onClick={() => setShowReturnModal(order._id)} className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-600 hover:text-white transition-all">
+                          <PackageReceiveIcon size={14} /> Return
                         </button>
-                        <button onClick={() => setShowReplaceModal(order._id)} className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">
-                          <ArrowReloadHorizontalIcon size={16} /> Request Replace
+                        <button onClick={() => setShowReplaceModal(order._id)} className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">
+                          <ArrowReloadHorizontalIcon size={14} /> Replace
                         </button>
                       </>
                     )}
                     <button
                         onClick={() => setShowDetailsModal(order._id)}
-                        className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-[#1A56DB] transition-all ml-auto shadow-lg shadow-slate-200"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#1A56DB] transition-all ml-auto shadow-md shadow-slate-200"
                     >
-                        <InformationCircleIcon size={16} variant="bulk" /> Details
+                        <InformationCircleIcon size={14} variant="bulk" /> Details
                     </button>
                   </div>
                 </div>

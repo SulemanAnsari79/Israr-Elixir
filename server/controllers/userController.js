@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { v2 as cloudinary } from 'cloudinary';
 import { validatePasswordStrength } from '../utils/passwordValidator.js';
+import { clearAuthCookie, setAuthCookie } from '../utils/authCookie.js';
 
 const createToken = (id, role = "user") => {
     return jwt.sign({ _id: id, role }, process.env.JWT_SECRET, { expiresIn: '1d' });
@@ -55,10 +56,10 @@ export const googleLogin = async (req, res) => {
         }
 
         const token = createToken(user._id, 'user');
+        setAuthCookie(res, token);
         return res.status(200).json({
             success: true,
             message: 'Signed in with Google successfully',
-            token,
             user: { _id: user._id, name: user.name, email: user.email, role: 'user', image: user.image }
         });
     } catch (error) {
@@ -69,7 +70,9 @@ export const googleLogin = async (req, res) => {
 
 export const register = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const name = req.body.name?.trim();
+        const email = req.body.email?.trim().toLowerCase();
+        const { password } = req.body;
 
         // Validate required fields
         if (!name || !email || !password) {
@@ -113,7 +116,8 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const email = req.body.email?.trim().toLowerCase();
+        const { password } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ success: false, message: 'Email and password required' });
@@ -121,7 +125,11 @@ export const login = async (req, res) => {
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ success: false, message: 'Invalid credentials' });
+            return res.status(401).json({ success: false, message: 'Invalid email or password' });
+        }
+
+        if (user.isDeleted || user.isActive === false) {
+            return res.status(403).json({ success: false, message: 'This account is not active' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -130,12 +138,12 @@ export const login = async (req, res) => {
         }
 
         const token = createToken(user._id, "user");
+        setAuthCookie(res, token);
          
         res.status(200).json
         ({
             success: true,
             message: 'Logged in successfully',
-            token,
             user: { _id: user._id, name: user.name, email: user.email, role: "user" }
         });
     } catch (error) {
@@ -146,9 +154,36 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
+        clearAuthCookie(res);
         res.status(200).json({ success: true, message: 'User logged out successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+export const getCurrentSession = async (req, res) => {
+    try {
+        if (req.user?.role === 'admin') {
+            return res.status(200).json({
+                success: true,
+                user: {
+                    _id: req.user._id || req.user.id,
+                    name: req.user.name || 'Admin',
+                    email: req.user.email,
+                    role: 'admin'
+                }
+            });
+        }
+
+        const user = await User.findById(req.user?._id).select('-password');
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'User not found' });
+        }
+
+        return res.status(200).json({ success: true, user });
+    } catch (error) {
+        console.error('Get current session error:', error);
+        return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
@@ -256,7 +291,7 @@ export const uploadProfileImage = async (req, res) => {
                 }
 
                 try {
-                    // Update user with image URL
+                    
                     const updatedUser = await User.findByIdAndUpdate(
                         userId,
                         { image: result.secure_url },
@@ -286,7 +321,7 @@ export const uploadProfileImage = async (req, res) => {
 
 export const getAllUsers = async (req,res)=>{
   try{
-                const users = await User.find().select("-password").sort({ createdAt: -1 });
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
     res.json(users);
   }catch(err){
     res.status(500).json({message:"Server error"});
@@ -348,17 +383,7 @@ export const deleteUser = async (req,res)=>{
         deletedReason: 'Deleted with user account'
       }
     );
-
-    // Soft delete all user's appointments
-    await Appointment.updateMany(
-      { user: userId },
-      {
-        isDeleted: true,
-        deletedAt: new Date(),
-        deletedReason: 'Deleted with user account'
-      }
-    );
-
+     
     res.json({ success: true, message: 'User and associated data deleted successfully' });
   }catch(err){
     console.error('Delete user error:', err);
@@ -455,6 +480,7 @@ export const deleteAccount = async (req, res) => {
             }
         );
         
+        clearAuthCookie(res);
         res.status(200).json({ success: true, message: 'Account and associated data deleted successfully' });
     }
     catch (error) {

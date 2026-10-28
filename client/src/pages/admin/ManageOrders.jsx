@@ -1,7 +1,7 @@
-import { getAuthCookie } from "../../services/AuthCookies";
 import { useEffect, useState } from "react";
-import { getOrders, updateOrderStatus } from "../../services/AdminService.js";
+import { getOrderInvoice, getOrders, updateOrderStatus } from "../../services/AdminService.js";
 import api from "../../services/Api";
+import { getAuthCookie } from "../../services/AuthCookies";
 import {
   FiClock,
   FiUserCheck,
@@ -17,6 +17,8 @@ import {
   FiMapPin,
   FiAlertCircle,
   FiCheckCircle,
+  FiDownload,
+  FiFileText,
 } from "react-icons/fi";
 
 const ManageOrders = () => {
@@ -89,6 +91,31 @@ const ManageOrders = () => {
       notes: order.notes || "",
     });
     setShowModal(true);
+  };
+
+  const handleInvoice = async (order, download = false) => {
+    const invoiceWindow = download ? null : window.open("", "_blank");
+    try {
+      setError(null);
+      const response = await getOrderInvoice(order._id, download);
+      const invoiceUrl = URL.createObjectURL(response.data);
+      if (download) {
+        const link = document.createElement("a");
+        link.href = invoiceUrl;
+        link.download = `invoice-${order._id.slice(-8).toUpperCase()}.pdf`;
+        link.click();
+      } else {
+        if (invoiceWindow) {
+          invoiceWindow.location.href = invoiceUrl;
+        } else {
+          window.open(invoiceUrl, "_blank", "noopener,noreferrer");
+        }
+      }
+      setTimeout(() => URL.revokeObjectURL(invoiceUrl), 60000);
+    } catch (err) {
+      invoiceWindow?.close();
+      setError(err.response?.data?.message || "Failed to generate invoice");
+    }
   };
 
   const handleUpdateOrder = async () => {
@@ -363,7 +390,7 @@ const ManageOrders = () => {
                   return (
                     <tr
                       key={order._id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition"
+                      className="border-b border-gray-100    "
                     >
                       <td className="px-6 py-4">
                         <span className="text-sm font-mono font-semibold text-gray-900">
@@ -410,17 +437,20 @@ const ManageOrders = () => {
                           >
                             <FiEye size={18} />
                           </button>
-
-                          {/* Assign to Delivery Man button */}
-                          {/* {!["Delivered", "Cancelled"].includes(order.status) && (
-                            <button
-                              onClick={() => openAssignModal(order._id)}
-                              className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                              title="Assign to Delivery Man"
-                            >
-                              <FiUserCheck size={18} />
-                            </button>
-                          )} */}
+                          <button
+                            onClick={() => handleInvoice(order)}
+                            className="p-2   rounded-lg transition"
+                            title="View invoice"
+                          >
+                            <FiFileText size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleInvoice(order, true)}
+                            className="p-2 rounded-lg transition"
+                            title="Download invoice"
+                          >
+                            <FiDownload size={18} />
+                          </button>
 
                           {order.returnRequest?.status === "Requested" && (
                             <>

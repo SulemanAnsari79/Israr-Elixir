@@ -4,7 +4,9 @@ import Order from "../models/orderModel.js";
 import Notice from "../models/noticeModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { clearAuthCookie, setAuthCookie } from "../utils/authCookie.js";
 import nodemailer from "nodemailer";
+import PDFDocument from "pdfkit";
  
  
 const toYmd = (dateInput) => {
@@ -87,18 +89,19 @@ const normalizeRuleList = (input) => {
 //Admin Authentication Controller functions
 export const adminLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
+    const { password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({success:false, message:"Email and password required"});
     }
 
-    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+    if (email === process.env.ADMIN_EMAIL?.trim().toLowerCase() && password === process.env.ADMIN_PASSWORD) {
         const token = jwt.sign({ id: "admin", role: "admin" }, process.env.JWT_SECRET, { expiresIn: "1d" });
+        setAuthCookie(res, token);
         res.status(200).json({
           success:true,
           message: "Admin logged in successfully",
-          token,
           user: { id: "admin", email: email, role: "admin" }
         });
     }
@@ -113,6 +116,7 @@ export const adminLogin = async (req, res) => {
 
 export const adminLogout = async (req, res) => {
   try {
+    clearAuthCookie(res);
     res.status(200).json({ success: true, message: "Admin logged out successfully" });
   }
   catch (error) {
@@ -446,6 +450,124 @@ const deleteOrder = async (req,res)=>{
   res.json({message:"Order deleted"});
 };
 
+export const generateOrderInvoice = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).lean();
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    const invoiceNumber = `INV-${String(order._id).slice(-8).toUpperCase()}`;
+    const shipping = order.shippingDetails || {};
+    const items = Array.isArray(order.items) ? order.items : [];
+    const subtotal = items.reduce(
+      (total, item) => total + Number(item.price || 0) * Number(item.quantity || 0),
+      0
+    );
+    const deliveryFee = Math.max(0, Number(order.totalAmount || 0) - subtotal);
+    const sellerName = process.env.INVOICE_SELLER_NAME || "ISRAR ELIXIR";
+    const sellerAddress = process.env.INVOICE_SELLER_ADDRESS || "";
+    const sellerGst = process.env.INVOICE_SELLER_GST || "";
+    const formatMoney = (value) => `INR ${Number(value || 0).toFixed(2)}`;
+    const orderDate = new Date(order.createdAt || Date.now()).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    const disposition = req.query.download === "true" ? "attachment" : "inline";
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `${disposition}; filename="${invoiceNumber}.pdf"`);
+
+    const document = new PDFDocument({ size: "A4", margin: 38 });
+    document.pipe(res);
+    const left = document.page.margins.left;
+    const right = document.page.width - document.page.margins.right;
+    const contentWidth = right - left;
+    const amountColumnX = right - 95;
+    const priceColumnX = right - 205;
+    const quantityColumnX = right - 310;
+
+    document.roundedRect(left - 14, 24, contentWidth + 28, 748, 14)
+      .lineWidth(0.8)
+      .strokeColor("#d1d5db")
+      .stroke();
+    document.font("Helvetica-Bold").fontSize(18).fillColor("#1f2937").text(sellerName, left, 48);
+    document.font("Helvetica-Bold").fontSize(9).fillColor("#6b7280").text("TAX INVOICE", left, 73);
+    document.font("Helvetica").fontSize(9);
+    if (sellerAddress) document.text(sellerAddress, left, 89, { width: 330 });
+    if (sellerGst) document.text(`GSTIN: ${sellerGst}`, left, sellerAddress ? 104 : 89);
+    document.font("Helvetica-Bold").fontSize(11).fillColor("#1f2937").text(invoiceNumber, right - 150, 48, { width: 150, align: "right" });
+    document.font("Helvetica").fontSize(9).fillColor("#4b5563").text(orderDate, right - 150, 73, { width: 150, align: "right" });
+
+    const headerBottom = Math.max(document.y, sellerAddress || sellerGst ? 122 : 104);
+    document.strokeColor("#d1d5db").moveTo(left, headerBottom).lineTo(right, headerBottom).stroke();
+    const customerNameY = headerBottom + 51;
+    const addressY = customerNameY + 22;
+    const customerAddress = [
+      shipping.address,
+      shipping.city,
+      shipping.state,
+      shipping.country,
+      shipping.zip,
+    ].filter(Boolean).join(", ");
+    const addressHeight = document.heightOfString(customerAddress || " ", { width: 360 });
+    const contactY = addressY + addressHeight + 10;
+    document.font("Helvetica-Bold").fontSize(11).fillColor("#1f2937").text("Bill To", left, headerBottom + 25);
+    document.font("Helvetica").fontSize(10).fillColor("#374151")
+      .text(shipping.fullName || "Customer", left, customerNameY)
+      .text(customerAddress, left, addressY, { width: 360 })
+      .text([shipping.email, shipping.phone].filter(Boolean).join("  •  "), left, contactY);
+
+    const tableTop = contactY + 32;
+    document.strokeColor("#d1d5db").moveTo(left, tableTop).lineTo(right, tableTop).stroke();
+    document.font("Helvetica-Bold").fontSize(10).fillColor("#374151")
+      .text("Item", left, tableTop + 16)
+      .text("Qty", quantityColumnX, tableTop + 16, { width: 35, align: "right" })
+      .text("Price", priceColumnX, tableTop + 16, { width: 75, align: "right" })
+      .text("Amount", amountColumnX, tableTop + 16, { width: 95, align: "right" });
+    let rowY = tableTop + 42;
+    document.font("Helvetica").fontSize(10);
+    items.forEach((item) => {
+      const quantity = Number(item.quantity || 0);
+      const price = Number(item.price || 0);
+      document.fillColor("#374151")
+        .text(String(item.name || "Product").slice(0, 48), left, rowY, { width: 250 })
+        .text(String(quantity), quantityColumnX, rowY, { width: 35, align: "right" })
+        .text(formatMoney(price), priceColumnX, rowY, { width: 75, align: "right" })
+        .text(formatMoney(price * quantity), amountColumnX, rowY, { width: 95, align: "right" });
+      rowY += 24;
+    });
+    document.strokeColor("#d1d5db").moveTo(left, rowY).lineTo(right, rowY).stroke();
+    rowY += 28;
+    const summaryLabelX = right - 180;
+    document.font("Helvetica-Bold").fontSize(10).fillColor("#374151")
+      .text("Subtotal", summaryLabelX, rowY)
+      .text(formatMoney(subtotal), amountColumnX, rowY, { width: 95, align: "right" });
+    rowY += 24;
+    document.text("Shipping", summaryLabelX, rowY)
+      .text(formatMoney(deliveryFee), amountColumnX, rowY, { width: 95, align: "right" });
+    rowY += 24;
+    document.text("GST", summaryLabelX, rowY)
+      .text("Calculated as applicable", left + contentWidth - 180, rowY, { width: 180, align: "right" });
+    rowY += 28;
+    document.strokeColor("#d1d5db").moveTo(left, rowY).lineTo(right, rowY).stroke();
+    rowY += 28;
+    document.font("Helvetica-Bold").fontSize(14).fillColor("#1f2937")
+      .text("Grand Total", left, rowY)
+      .text(formatMoney(order.totalAmount), left + contentWidth - 220, rowY, { width: 220, align: "right" });
+    document.fontSize(9).fillColor("#6b7280")
+      .text(`Payment: ${order.paymentMethod || "N/A"} (${order.paymentStatus || "Pending"})`, left, rowY + 31)
+      .text(`Order status: ${order.status || "Pending"}`, left, rowY + 46)
+      .text("Illustrative invoice layout. GST treatment depends on the product, seller, transaction and tax-inclusive pricing.", left, rowY + 76, { width: contentWidth });
+    document.end();
+  } catch (error) {
+    console.error("Generate invoice error:", error);
+    if (!res.headersSent) return res.status(500).json({ success: false, message: "Failed to generate invoice" });
+    res.destroy(error);
+  }
+};
+
 const getAdminStats = async (req,res)=>{
   try {
     const totalUsers = await User.countDocuments();
@@ -455,6 +577,10 @@ const getAdminStats = async (req,res)=>{
     // Calculate total revenue from all orders
     const orders = await Order.find({});
     const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const todayOrders = await Order.find({ createdAt: { $gte: startOfToday } });
+    const todayRevenue = todayOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
     res.json({
       success: true,
@@ -462,6 +588,8 @@ const getAdminStats = async (req,res)=>{
       totalProducts,
       totalOrders,
       totalRevenue,
+      todayOrders: todayOrders.length,
+      todayRevenue,
     });
   } catch (error) {
     console.error('Get admin stats error:', error);
@@ -560,50 +688,6 @@ export const assignOrderToDelivery = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-
-// Public endpoint to get delivery locations (no auth required)
-// export const getPublicDeliveryLocations = async (req, res) => {
-//   try {
-//     const rules = await DeliveryLocationRule.findOne({ singletonKey: "global" });
-
-//     if (!rules || !rules.isEnabled) {
-//       return res.status(200).json({
-//         success: true,
-//         locations: {
-//           isEnabled: false,
-//           cities: [],
-//           states: [],
-//           countries: [],
-//           pincodes: [],
-//         },
-//       });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       locations: {
-//         isEnabled: true,
-//         cities: rules.allowedCities || [],
-//         states: rules.allowedStates || [],
-//         countries: rules.allowedCountries || [],
-//         pincodes: rules.allowedPincodes || [],
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Get public delivery locations error:", error);
-//     return res.status(200).json({
-//       success: true,
-//       locations: {
-//         isEnabled: false,
-//         cities: [],
-//         states: [],
-//         countries: [],
-//         pincodes: [],
-//       },
-//     });
-//   }
-// };
 
 export { adminDashboard,
   createUser,

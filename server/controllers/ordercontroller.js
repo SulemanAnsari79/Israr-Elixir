@@ -136,6 +136,14 @@ const isOnlinePaidOrder = (order) => String(order?.paymentMethod || '').toLowerC
 const processOnlineOrderRefund = async (order, adminNotes = '') => {
         if (!order?.razorpayPaymentId) {
                 order.paymentStatus = 'Refund Failed';
+                order.refund = {
+                        ...(order.refund || {}),
+                        status: 'Failed',
+                        amount: Number(order.totalAmount || 0),
+                        reason: 'Missing Razorpay payment reference',
+                        failedAt: new Date(),
+                        failureReason: 'Missing Razorpay payment reference',
+                };
                 order.cancelRequest = {
                         ...(order.cancelRequest || {}),
                         adminNotes: adminNotes || 'Refund failed: missing Razorpay payment reference',
@@ -145,15 +153,34 @@ const processOnlineOrderRefund = async (order, adminNotes = '') => {
 
         try {
             const razorpay = getRazorpayInstance();
+            const refundAmount = Math.round(Number(order.totalAmount || 0) * 100);
+            const refundReason = String(
+                order.returnRequest?.reason || order.cancelRequest?.reason || 'Order refund'
+            );
+            const refundSource = order.returnRequest?.status === 'Approved' ? 'Return' : 'Cancellation';
+
+            order.refund = {
+                ...(order.refund || {}),
+                status: 'Initiated',
+                amount: Number(order.totalAmount || 0),
+                currency: 'INR',
+                reason: refundReason,
+                source: refundSource,
+                initiatedAt: new Date(),
+                failedAt: null,
+                failureReason: '',
+            };
             const refundResponse = await razorpay.payments.refund(order.razorpayPaymentId, {
-                amount: Math.round(Number(order.totalAmount || 0) * 100),
+                amount: refundAmount,
                 notes: {
                     orderId: String(order._id),
-                    reason: String(order.cancelRequest?.reason || 'Cancellation approved'),
+                    reason: refundReason,
                 },
             });
 
-            order.paymentStatus = 'Refunded';
+            order.paymentStatus = 'Refund Pending';
+            order.refund.razorpayRefundId = String(refundResponse?.id || '');
+            order.refund.currency = String(refundResponse?.currency || 'INR').toUpperCase();
             order.cancelRequest = {
                 ...(order.cancelRequest || {}),
                 adminNotes: adminNotes || order.cancelRequest?.adminNotes || '',
@@ -163,8 +190,87 @@ const processOnlineOrderRefund = async (order, adminNotes = '') => {
             return { ok: true, refundId: String(refundResponse?.id || '') };
         } catch (error) {
             order.paymentStatus = 'Refund Failed';
+            order.refund = {
+                ...(order.refund || {}),
+                status: 'Failed',
+                amount: Number(order.totalAmount || 0),
+                failedAt: new Date(),
+                failureReason: error?.error?.description || error?.message || 'Refund failed',
+            };
             return { ok: false, message: error?.error?.description || error?.message || 'Refund failed' };
         }
+};
+
+const verifyRazorpayWebhook = (rawBody, signature) => {
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!secret || !rawBody || !signature) return false;
+
+    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+    const expectedBuffer = Buffer.from(expected);
+    const receivedBuffer = Buffer.from(String(signature));
+    return expectedBuffer.length === receivedBuffer.length
+        && crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
+};
+
+export const handleRazorpayWebhook = async (req, res) => {
+    if (!verifyRazorpayWebhook(req.rawBody, req.headers['x-razorpay-signature'])) {
+        return res.status(401).json({ success: false, message: 'Invalid webhook signature' });
+    }
+
+    try {
+        const event = String(req.body?.event || '');
+        const entity = req.body?.payload?.refund?.entity || req.body?.payload?.payment?.entity;
+        const paymentId = String(entity?.payment_id || entity?.id || '');
+        const orderId = String(entity?.order_id || '');
+
+        if (!paymentId && !orderId) {
+            return res.status(400).json({ success: false, message: 'Webhook does not contain an order reference' });
+        }
+
+        const order = await Order.findOne({
+            $or: [
+                ...(paymentId ? [{ razorpayPaymentId: paymentId }] : []),
+                ...(orderId ? [{ razorpayOrderId: orderId }] : []),
+            ],
+        });
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found for webhook reference' });
+        }
+
+        const refundEntity = req.body?.payload?.refund?.entity;
+        const refundId = String(refundEntity?.id || order.refund?.razorpayRefundId || '');
+        const webhookDate = new Date();
+        order.refund = {
+            ...(order.refund || {}),
+            amount: refundEntity?.amount ? Number(refundEntity.amount) / 100 : Number(order.refund?.amount || order.totalAmount || 0),
+            currency: String(refundEntity?.currency || order.refund?.currency || 'INR').toUpperCase(),
+            razorpayRefundId: refundId,
+            webhookUpdatedAt: webhookDate,
+        };
+
+        if (['refund.created', 'refund.pending'].includes(event)) {
+            order.refund.status = 'Initiated';
+            order.paymentStatus = 'Refund Pending';
+        } else if (['refund.processed', 'payment.refunded'].includes(event)) {
+            order.refund.status = 'Processed';
+            order.refund.processedAt = webhookDate;
+            order.paymentStatus = 'Refunded';
+        } else if (event === 'refund.failed') {
+            order.refund.status = 'Failed';
+            order.refund.failedAt = webhookDate;
+            order.refund.failureReason = String(refundEntity?.failure_reason || refundEntity?.error_description || 'Razorpay marked the refund as failed');
+            order.paymentStatus = 'Refund Failed';
+        } else {
+            return res.status(200).json({ success: true, ignored: true });
+        }
+
+        await order.save();
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Razorpay webhook error:', error);
+        return res.status(500).json({ success: false, message: 'Failed to process webhook' });
+    }
 };
 
 const createEmailTransporter = () =>
@@ -657,6 +763,23 @@ export const listCancelRequests = async (req, res) => {
     }
 };
 
+export const listRefunds = async (req, res) => {
+    try {
+        const status = String(req.query.status || 'all').trim();
+        const query = status === 'all'
+            ? { 'refund.status': { $in: ['Initiated', 'Processed', 'Failed'] } }
+            : { 'refund.status': status };
+        const orders = await Order.find(query)
+            .populate('user', 'name email')
+            .sort({ 'refund.initiatedAt': -1, updatedAt: -1 });
+
+        return res.status(200).json({ success: true, orders, count: orders.length });
+    } catch (error) {
+        console.error('List refunds error:', error);
+        return res.status(500).json({ success: false, message: 'Failed to fetch refunds' });
+    }
+};
+
 export const approveCancelRequest = async (req, res) => {
     try {
         const { id } = req.params;
@@ -669,6 +792,20 @@ export const approveCancelRequest = async (req, res) => {
 
         if (String(order.cancelRequest?.status || 'None') !== 'Requested') {
             return res.status(400).json({ success: false, message: 'No pending cancellation request' });
+        }
+
+        if (!['Pending', 'Processing'].includes(String(order.status || ''))) {
+            return res.status(400).json({
+                success: false,
+                message: `Cancellation is only allowed before shipment (current status: ${order.status})`,
+            });
+        }
+
+        if (String(order.paymentStatus || '') === 'Paid' && !isOnlinePaidOrder(order)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Paid COD orders are not eligible for refunds',
+            });
         }
 
         const previousStatus = order.status;
@@ -698,21 +835,6 @@ export const approveCancelRequest = async (req, res) => {
                     order,
                 });
             }
-        }
-
-        if (!isOnlinePaidOrder(order) && String(order.paymentStatus || '') === 'Paid') {
-            order.codRefund = {
-                ...(order.codRefund || {}),
-                status: 'Requested',
-                amount: Number(order.totalAmount || 0),
-                reason: order.cancelRequest.reason || 'Approved cancellation for COD order',
-                requestedAt: new Date(),
-                adminNotes: adminNotes || '',
-                failureReason: '',
-                payoutMethod: '',
-                payoutReference: '',
-            };
-            order.paymentStatus = 'Refund Pending';
         }
 
         await order.save();
@@ -791,6 +913,13 @@ export const requestReturn = async (req, res) => {
 
         if (order.status !== 'Delivered') {
             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
+        }
+
+        if (!isOnlinePaidOrder(order) || String(order.paymentStatus || '') !== 'Paid') {
+            return res.status(400).json({
+                success: false,
+                message: 'Only paid Razorpay orders are eligible for return refunds',
+            });
         }
 
         const returnDeadline = order.returnDeadlineDate || new Date(order.deliveredAt?.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -883,21 +1012,26 @@ export const approveReturn = async (req, res) => {
             adminNotes: adminNotes || ''
         };
 
-        const isCodOrder = String(order.paymentMethod || '').toLowerCase() !== 'razorpay';
-        if (isCodOrder && String(order.paymentStatus || '') === 'Paid') {
-            order.codRefund = {
-                ...(order.codRefund || {}),
-                status: 'Requested',
-                amount: Number(order.totalAmount || 0),
-                reason: order.returnRequest?.reason || 'Approved return for COD order',
-                requestedAt: new Date(),
-                adminNotes: adminNotes || '',
-                failureReason: '',
-            };
-            order.paymentStatus = 'Refund Pending';
+        if (!isOnlinePaidOrder(order) || String(order.paymentStatus || '') !== 'Paid') {
+            return res.status(400).json({
+                success: false,
+                message: 'Only paid Razorpay orders are eligible for a return refund',
+            });
         }
 
+        order.paymentStatus = 'Refund Pending';
         order.status = 'Processing';
+
+        const refundResult = await processOnlineOrderRefund(order, adminNotes);
+        if (!refundResult.ok) {
+            await order.save();
+            return res.status(502).json({
+                success: false,
+                message: refundResult.message || 'Failed to process return refund',
+                order,
+            });
+        }
+
         await order.save();
 
         try {
@@ -912,7 +1046,7 @@ export const approveReturn = async (req, res) => {
             console.error('Failed to send return approval email:', emailError);
         }
 
-        return res.status(200).json({ success: true, message: 'Return request approved and order moved to Processing', order });
+        return res.status(200).json({ success: true, message: 'Return approved and refund initiated; awaiting Razorpay confirmation', order });
     } catch (error) {
         console.error('Approve return error:', error);
         res.status(500).json({ success: false, message: 'Server error' });

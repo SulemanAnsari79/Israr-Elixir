@@ -1,245 +1,156 @@
-import { getAuthCookie, setAuthCookie, clearAuthCookies } from "../services/AuthCookies";
-import { createContext, useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
-
-export const AuthContext = createContext(null);
-
-// Initialize authentication state from cookies
-const initializeAuth = () => {
-  try {
-    const storedUser = getAuthCookie("user");
-    const storedToken = getAuthCookie("token");
-    
-    if (storedUser && storedToken) {
-      return {
-        user: JSON.parse(storedUser),
-        token: storedToken
-      };
-    }
-  } catch (error) {
-    console.error("Failed to parse stored auth data:", error);
-    clearAuthCookies();
-  }
-  
-  return { user: null, token: '' };
-};
+import api from "../services/Api";
+import { AuthContext } from "./AuthContextDefinition";
 
 const AuthProvider = ({ children }) => {
-
-  const currency = 'INR';
+  const currency = "INR";
   const delivery_fee = 50;
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '');
-  const normalizedBackendUrl = backendUrl.replace(/\/+$/, '');
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
   const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState({});
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const [isLoading] = useState(false);
-  const initialAuth = initializeAuth();
-  const [token, setToken] = useState(initialAuth.token);
-  const [user, setUser] = useState(initialAuth.user);
 
   const login = (userData) => {
-    // Ensure user has all necessary fields
-    const userWithRole = {
+    if (!userData) {
+      setUser(null);
+      setIsAuthenticated(false);
+      return;
+    }
+
+    setUser({
       _id: userData._id || userData.id,
       name: userData.name,
       email: userData.email,
-      role: userData.role || "user"
+      role: userData.role || "user",
+    });
+    setIsAuthenticated(true);
+  };
+
+  useEffect(() => {
+    let active = true;
+
+    const restoreSession = async () => {
+      try {
+        const response = await api.get("/api/user/session", { skipAuthRedirect: true });
+        if (active && response.data.success && response.data.user) {
+          login(response.data.user);
+        }
+      } catch (error) {
+        if (error.response?.status !== 401 && error.message !== "Network Error") {
+          console.error("Session restore failed:", error);
+        }
+        if (active) {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } finally {
+        if (active) setIsLoading(false);
+      }
     };
-    setUser(userWithRole);
-    setToken(userData.token);
-    setAuthCookie("user", JSON.stringify(userWithRole));
-    setAuthCookie("token", userData.token);
-  };
 
-  const logout = () => {
-    
-    console.log("Logging out user");
-    setUser(null);
-    setToken('');
-    clearAuthCookies();
-  };
+    restoreSession();
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  const addToCart = async (itemId, size) => {
-    // If size isn't explicitly provided, auto-pick Medium or first available size.
-    let chosenSize = size;
-    if (!chosenSize) {
-      const product = products.find((item) => String(item._id) === String(itemId));
-      const availableSizes = Array.isArray(product?.sizes) ? product.sizes : [];
-      chosenSize = availableSizes.find((item) => String(item).toUpperCase() === "M") || availableSizes[0] || "";
-    }
-
-    // Ensure itemId is a string for consistent key matching
-    const productId = String(itemId);
-
-    // frontend optimistic update
-    setCartItems(prev => ({ ...prev, [productId]: { ...(prev[productId] || {}), [chosenSize]: (prev[productId]?.[chosenSize] || 0) + 1}}));
-
-    if (token) {
-      try {
-        const response = await axios.post(
-          `${normalizedBackendUrl}/api/cart/add`,
-          { productId, quantity: 1, size: chosenSize },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (!response.data.success) {
-          toast.error(response.data.message || "Add to cart failed");
-          getUserCart(token); // rollback from server
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error(error.response?.data?.message || "Add to cart failed");
-        getUserCart(token); // rollback
-      }
-    }
-  };
-
-  const getCartCount = useCallback(() => {
-    let totalCount = 0;
-    for (const itemId in cartItems) {
-      for (const size in cartItems[itemId]) {
-        if (cartItems[itemId][size] > 0) {
-          totalCount += cartItems[itemId][size];
-        }
-      }
-    }
-    return totalCount;
-  }, [cartItems]);
-
-  const getCartAmount = () => {
-    let totalAmount = 0;
-    for (const items in cartItems) {
-      let itemInfo = products.find((product) => product._id === items);
-      if (!itemInfo) continue; // Skip if product not found
-      for (const item in cartItems[items]) {
-        if (cartItems[items][item] > 0) {
-          totalAmount += itemInfo.price * cartItems[items][item];
-        }
-      }
-    }
-    return totalAmount;
-  }
-
-  const updateQuantity = async (itemId, size, quantity) => {
-    // Ensure itemId is a string for consistent key matching
-    const productId = String(itemId);
-    
-    setCartItems(prev => ({...prev,[productId]: {...(prev[productId] || {}),[size]: quantity}}));
-    if (token) {
-      try {
-        await axios.post(`${normalizedBackendUrl}/api/cart/update`,{ productId, size, quantity },{ headers: { Authorization: `Bearer ${token}` } });
-      } catch (error) {
-        console.error(error);
-        toast.error(error.message);
-      }
-    }
-  };
-
-  const getProductData = useCallback(async () => { 
+  const logout = async () => {
     try {
-      const response = await axios.get(`${normalizedBackendUrl}/api/product/list`);
-      if (response.data.success) {
-        setProducts(response.data.products);
-      }
+      await api.post("/api/user/logout");
     } catch (error) {
-      // Only log, don't show error toast for product list - not critical
-      console.debug('Product list fetch error (non-critical):', error.message);
-      // Silently continue without products - they'll load when user navigates to products page
+      console.error("Logout failed:", error);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      setCartItems({});
     }
-  }, [backendUrl]);
-  
+  };
 
-  const getUserCart = useCallback(async (token) => {
+  const getUserCart = useCallback(async () => {
     try {
-      const response = await axios.post(`${normalizedBackendUrl}/api/cart/getUserCart`, {}, { headers:  {Authorization: `Bearer ${token}` } });
-
+      const response = await api.post("/api/cart/getUserCart", {});
       if (response.data.success) {
-        // Transform backend cart array to frontend nested structure
         const transformedCart = {};
-        
-        if (Array.isArray(response.data.cart)) {
-          response.data.cart.forEach(item => {
-            // Extract product ID (handle both cases: populated object or plain ID)
-            let productId = item.productId;
-            if (typeof productId === 'object' && productId !== null) {
-              productId = productId._id || productId;
-            }
-            
-            // Convert to string for consistent key usage
-            const productIdStr = String(productId);
-            const size = item.size || "";
-            const quantity = item.quantity;
-            
-            if (!transformedCart[productIdStr]) {
-              transformedCart[productIdStr] = {};
-            }
-            transformedCart[productIdStr][size] = quantity;
-          });
-        }
-        
+        (response.data.cart || []).forEach((item) => {
+          const productId = String(item.productId?._id || item.productId);
+          if (!transformedCart[productId]) transformedCart[productId] = {};
+          transformedCart[productId][item.size || ""] = item.quantity;
+        });
         setCartItems(transformedCart);
       }
     } catch (error) {
-      // Silently handle 401 errors - auth interceptor will handle redirect
-      if (error.response?.status === 401) {
-        console.debug('Cart fetch skipped: token expired or invalid');
-        return;
-      }
-      console.error('Failed to fetch cart:', error);
-      // Only show error toast for non-auth errors
-      if (error.message !== 'Network Error') {
-        toast.error(error.response?.data?.message || 'Failed to load cart')
+      if (error.response?.status !== 401 && error.message !== "Network Error") {
+        toast.error(error.response?.data?.message || "Failed to load cart");
       }
     }
-  }, [backendUrl]);
+  }, []);
+
+  const addToCart = async (itemId, size) => {
+    const product = products.find((item) => String(item._id) === String(itemId));
+    const chosenSize = size || product?.sizes?.find((item) => String(item).toUpperCase() === "M") || product?.sizes?.[0] || "";
+    const productId = String(itemId);
+    setCartItems((prev) => ({
+      ...prev,
+      [productId]: { ...(prev[productId] || {}), [chosenSize]: (prev[productId]?.[chosenSize] || 0) + 1 },
+    }));
+    if (!isAuthenticated) return;
+    try {
+      const response = await api.post("/api/cart/add", { productId, quantity: 1, size: chosenSize });
+      if (!response.data.success) await getUserCart();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Add to cart failed");
+      await getUserCart();
+    }
+  };
+
+  const updateQuantity = async (itemId, size, quantity) => {
+    const productId = String(itemId);
+    setCartItems((prev) => ({ ...prev, [productId]: { ...(prev[productId] || {}), [size]: quantity } }));
+    if (isAuthenticated) await api.post("/api/cart/update", { productId, size, quantity });
+  };
 
   const clearCart = useCallback(async () => {
     setCartItems({});
-    if (token) {
-      try {
-        await axios.post(`${normalizedBackendUrl}/api/cart/clear`, {}, { headers: { Authorization: `Bearer ${token}` } });
-      } catch (error) {
-        console.error('Failed to clear cart:', error);
-      }
+    if (isAuthenticated) await api.post("/api/cart/clear", {});
+  }, [isAuthenticated]);
+
+  const getProductData = useCallback(async () => {
+    try {
+      const response = await api.get("/api/product/list", { params: { activeOnly: true } });
+      if (response.data.success) setProducts(response.data.products);
+    } catch (error) {
+      console.debug("Product list fetch error (non-critical):", error.message);
     }
-  }, [token, backendUrl]);
+  }, []);
 
+  const getCartCount = useCallback(() => Object.values(cartItems)
+    .flatMap((sizes) => Object.values(sizes))
+    .reduce((total, quantity) => total + (quantity > 0 ? quantity : 0), 0), [cartItems]);
+
+  const getCartAmount = () => Object.entries(cartItems).reduce((total, [id, sizes]) => {
+    const product = products.find((item) => String(item._id) === id);
+    return total + (product ? Object.entries(sizes).reduce((sum, [, quantity]) => sum + product.price * quantity, 0) : 0);
+  }, 0);
+
+  useEffect(() => { getProductData(); }, [getProductData]);
   useEffect(() => {
-    getProductData();
-  }, [getProductData]);
+    if (isAuthenticated && user?.role === "user") getUserCart();
+  }, [isAuthenticated, user, getUserCart]);
 
-  useEffect(() => {
-    // Only fetch cart for regular users, not for doctors or admins
-    if (token && user && user.role === 'user') {
-      getUserCart(token);
-    }
-  }, [token, user, getUserCart]);
-
-
-  const value = {
-    login,
-    logout,
-    user,
-    isLoading,
-    products,
-    currency,
-    delivery_fee,
-    search, setSearch,
-    showSearch, setShowSearch,
-    cartItems, setCartItems, 
-    addToCart, getCartCount, clearCart,
-    updateQuantity, getCartAmount,
-    navigate, 
-    backendUrl,
-    token, setToken
-  };
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      login, logout, user, token: isAuthenticated, setToken: setIsAuthenticated,
+      isLoading, products, currency, delivery_fee, search, setSearch, showSearch, setShowSearch,
+      cartItems, setCartItems, addToCart, getCartCount, clearCart, updateQuantity, getCartAmount,
+      navigate, backendUrl,
+    }}>
       {children}
     </AuthContext.Provider>
   );

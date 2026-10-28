@@ -1,5 +1,5 @@
-import { getAuthCookie } from "./AuthCookies";
 import api from './Api';
+import { getAuthCookie } from './AuthCookies';
 
 const OrderService = {
   /**

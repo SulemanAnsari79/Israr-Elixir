@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Plus } from 'lucide-react';
-import { AuthContext } from '../context/AuthContext.jsx';
+import { AuthContext } from '../context/AuthContextDefinition.js';
 
 export default function ProductCard({ product }) {
   const { addToCart } = useContext(AuthContext);

@@ -1,6 +1,6 @@
 import React, { useMemo, useContext } from "react";
 import { Link } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "../../context/AuthContextDefinition";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { toast } from "react-toastify";

@@ -107,7 +107,8 @@ export const createProduct = async (req, res) => {
 
 export const getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find({}).sort({ createdAt: -1 });
+        const filter = req.query.activeOnly === 'true' ? { isActive: { $ne: false } } : {};
+        const products = await Product.find(filter).sort({ createdAt: -1 });
         return res.status(200).json({ success: true, products });
     } catch (error) {
         console.error('Get products error:', error);
@@ -118,10 +119,10 @@ export const getAllProducts = async (req, res) => {
 export const getProductById = async (req, res) => {
     try {
         const { id } = req.params;
-        const product = await Product.findById(id);
+        const product = await Product.findOne({ _id: id, isActive: { $ne: false } });
 
         if (!product) {
-            return res.status(404).json({ success: false, message: 'Product not found' });
+            return res.status(404).json({success: false, message: 'Product not found' });
         }
 
         return res.status(200).json({ success: true, product });

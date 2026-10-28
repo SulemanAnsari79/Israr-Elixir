@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { toast } from "react-toastify";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "../../context/AuthContextDefinition";
 import AuthService from "../../services/AuthService";
 import OrderService from "../../services/OrderService";
 // import { getMyBookedAppointments } from "../../services/DoctorService.js";
@@ -41,7 +41,6 @@ const Profile = () => {
   const [deletePassword, setDeletePassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [ordersCount, setOrdersCount] = useState(0);
-  const [appointmentsCount, setAppointmentsCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(true);
 
   const fetchProfile = async () => {
@@ -57,7 +56,7 @@ const Profile = () => {
       } else {
         setPreviewImage(profileImage);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load profile");
     }
   };
@@ -68,9 +67,8 @@ const Profile = () => {
     const fetchStats = async () => {
       setStatsLoading(true);
       try {
-        const [ordersResponse, appointmentsResponse] = await Promise.allSettled([
-          OrderService.getUserOrders(),
-          // getMyBookedAppointments(),
+        const [ordersResponse] = await Promise.allSettled([
+          OrderService.getUserOrders()
         ]);
 
         if (ordersResponse.status === "fulfilled") {
@@ -78,16 +76,6 @@ const Profile = () => {
             ? ordersResponse.value.orders
             : [];
           setOrdersCount(orders.length);
-        }
-
-        if (appointmentsResponse.status === "fulfilled") {
-          const appointmentPayload = appointmentsResponse.value?.data;
-          const appointments = Array.isArray(appointmentPayload?.appointments)
-            ? appointmentPayload.appointments
-            : Array.isArray(appointmentPayload)
-              ? appointmentPayload
-              : [];
-          setAppointmentsCount(appointments.length);
         }
       } catch (error) {
         console.error("Failed to load user stats", error);
@@ -103,7 +91,7 @@ const Profile = () => {
     e.preventDefault();
     const response = await AuthService.updateProfile({ name, email, phone, address });
     if (response.success) {
-      toast.success("Profile synchronized!");
+      toast.success("Profile Updated Successfully!");
       fetchProfile();
     } else {
       toast.error(response.message || "Update failed");
@@ -121,6 +109,11 @@ const Profile = () => {
   };
 
   const handleUploadImage = async () => {
+    if (!imageFile) {
+      toast.error("Please select an image first");
+      return;
+    }
+
     setImageUploading(true);
     try {
       const response = await AuthService.uploadProfileImage(imageFile);
@@ -130,7 +123,7 @@ const Profile = () => {
         fetchProfile();
       }
     } catch (error) {
-      toast.error("Upload failed");
+      toast.error(error.message || "Upload failed");
     } finally {
       setImageUploading(false);
     }
@@ -196,21 +189,21 @@ const Profile = () => {
   };
 
   return (
-    <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
+    <div className="profile-page store-page min-h-screen font-['Plus_Jakarta_Sans']">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-6 py-12 md:py-20">
-        <div className="grid lg:grid-cols-12 gap-8">
+      <main className="profile-layout mx-auto px-4 py-8 sm:px-6 md:py-12 xl:px-8 xl:py-16">
+        <div className="grid gap-6 lg:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] xl:gap-8">
           
           {/* LEFT: THE IDENTITY CARD */}
-          <aside className="lg:col-span-4 space-y-6">
-            <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.02)] text-center relative overflow-hidden">
-              {/* Decorative background circle */}
+          <aside className="space-y-5 xl:space-y-6">
+            <div className="relative overflow-hidden rounded-md border border-slate-100 bg-white p-6 text-center shadow-[0_20px_50px_rgba(0,0,0,0.02)] xl:rounded-xl xl:p-8">
+             
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-50 -mr-16 -mt-16"></div>
               
               <div className="relative inline-block mb-6">
                 <div className="relative group">
-                  <img src={previewImage} alt="User" className="w-40 h-40 mx-auto rounded-[3rem] object-cover ring-8 ring-slate-50 transition-all group-hover:scale-95"/>
+                  <img src={previewImage} alt="User" className="mx-auto rounded-full ring-1 object-cover transition-all group-hover:scale-95 xl:h-40 xl:w-40 "/>
                   <label htmlFor="image-input" className="absolute -bottom-2 -right-2 bg-slate-900 text-white p-3 rounded-2xl cursor-pointer hover:bg-[#1A56DB] transition-all shadow-xl">
                     <Camera01Icon size={20} variant="bulk" />
                   </label>
@@ -220,10 +213,10 @@ const Profile = () => {
 
               {imageFile && (
                 <div className="mb-6 flex gap-2 animate-in fade-in slide-in-from-top-4">
-                  <button onClick={handleUploadImage} disabled={imageUploading} className="flex-1 bg-[#1A56DB] text-white py-2 rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-50">
+                  <button onClick={handleUploadImage} disabled={imageUploading} className="flex-1 bg-[#1A56DB] text-white py-2 rounded-md  text-xs font-black uppercase tracking-widest disabled:opacity-50">
                     {imageUploading ? "Syncing..." : "Apply"}
                   </button>
-                  <button onClick={() => { setImageFile(null); setPreviewImage(profileImage); }} className="flex-1 bg-slate-100 text-slate-400 py-2 rounded-xl text-xs font-black uppercase tracking-widest">
+                  <button onClick={() => { setImageFile(null); setPreviewImage(profileImage); }} className="flex-1 bg-slate-100 text-slate-400 py-2 rounded-md  text-xs font-black uppercase tracking-widest">
                     Cancel
                   </button>
                 </div>
@@ -236,7 +229,7 @@ const Profile = () => {
                 <p className="text-slate-400 font-bold text-sm tracking-tight">{email}</p>
               </div>
 
-              <div className="mt-8 pt-8 border-t border-slate-50 space-y-3">
+              <div className="mt-6 space-y-3 border-t border-slate-50 pt-6 xl:mt-8 xl:pt-8">
                 <button onClick={logout} className="w-full flex items-center justify-center gap-3 bg-rose-50 text-rose-600 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-100 transition-all group">
                   <Logout01Icon size={18} variant="bulk" className="group-hover:translate-x-1 transition-transform" />
                   Sign Out
@@ -245,32 +238,27 @@ const Profile = () => {
             </div>
 
             {/* QUICK STATS BENTO */}
-            <div className="grid grid-cols-2 gap-4">
-               <div className="bg-white p-6 rounded-3xl border border-slate-100 text-center">
+            <button onClick={() => navigate('/place-order')}  className="grid grid-cols-2 gap-3 xl:gap-4">
+               <div className="rounded-3xl border border-slate-100 bg-white p-4 text-center xl:p-6">
                   <PackageIcon size={24} className="mx-auto text-blue-500 mb-2" variant="bulk" />
                   <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Orders</p>
                 <p className="text-xl font-black text-slate-900">{statsLoading ? "--" : String(ordersCount).padStart(2, "0")}</p>
                </div>
-               <div className="bg-white p-6 rounded-3xl border border-slate-100 text-center">
-                  <Calendar03Icon size={24} className="mx-auto text-teal-500 mb-2" variant="bulk" />
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Appts</p>
-                <p className="text-xl font-black text-slate-900">{statsLoading ? "--" : String(appointmentsCount).padStart(2, "0")}</p>
-               </div>
-            </div>
+            </button>
           </aside>
 
           {/* RIGHT: THE SETTINGS HUB */}
-          <div className="lg:col-span-8 space-y-8">
+          <div className="space-y-6 xl:space-y-8">
             
             {/* PROFILE FORM */}
-            <div className="bg-white rounded-[2.5rem] p-8 md:p-12 border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
+            <div className="rounded-md border border-slate-100 bg-white p-6 shadow-[0_20px_50px_rgba(0,0,0,0.02)] md:p-8 xl:rounded-xl xl:p-12">
               <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3 uppercase tracking-widest text-[11px]">
                 <UserCircleIcon size={20} className="text-[#1A56DB]" variant="bulk" />
                 My Profile
               </h3>
 
-              <form onSubmit={UpdateHandler} className="space-y-8">
-                <div className="grid md:grid-cols-2 gap-8">
+              <form onSubmit={UpdateHandler} className="space-y-6 xl:space-y-8">
+                <div className="grid gap-6 md:grid-cols-2 xl:gap-8">
                   <div className="space-y-2">
                     <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Display Name</label>
                     <div className="relative">
@@ -288,8 +276,7 @@ const Profile = () => {
                   <div className="space-y-2">
                     <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Contact Number</label>
                     <div className="relative">
-                      {/* <Call01Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} /> */}
-                      <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-slate-50 border-none pl-12 p-4 rounded-2xl font-bold text-slate-800 focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
+                      <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-slate-50 border-none p-4 rounded-2xl font-bold text-slate-800 focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -306,35 +293,8 @@ const Profile = () => {
               </form>
             </div>
 
-            {/* DASHBOARD ACTIONS */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <button onClick={() => navigate('/place-order')} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 flex items-center justify-between group hover:border-blue-200 transition-all">
-                <div className="flex items-center gap-5">
-                  <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
-                    <PackageIcon size={24} variant="bulk" />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-black text-slate-900 tracking-tight">Order History</h4>
-                    <p className="text-xs font-bold text-slate-400">Track current & past meds</p>
-                  </div>
-                </div>
-              </button>
-
-              <button onClick={() => navigate('/my-appointments')} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 flex items-center justify-between group hover:border-teal-200 transition-all">
-                <div className="flex items-center gap-5">
-                  <div className="p-4 bg-teal-50 text-teal-600 rounded-2xl">
-                    <Calendar03Icon size={24} variant="bulk" />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-black text-slate-900 tracking-tight">Appointments</h4>
-                    <p className="text-xs font-bold text-slate-400">Manage doctor visits</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-
             {/* SECURITY BOX */}
-            <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100">
+            <div className="rounded-md  border border-slate-100 bg-white p-6 xl:rounded-xl xl:p-10">
               <h3 className="text-[11px] font-black text-slate-400 mb-8 uppercase tracking-widest flex items-center gap-2">
                 <Settings02Icon size={18} /> Account Vault
               </h3>
@@ -375,7 +335,7 @@ const Profile = () => {
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-[3rem] shadow-2xl max-w-md w-full p-10 relative border border-white">
             <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tighter">Close Account</h3>
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed">This will delete your account and associated orders/appointments. Enter your password to confirm.</p>
+            <p className="text-sm text-slate-500 mb-6 leading-relaxed">This will delete your account and associated orders. Enter your password to confirm.</p>
             <form onSubmit={handleDeleteAccount} className="space-y-6">
               <input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} placeholder="Account Password" required className="w-full bg-slate-50 border-none p-4 rounded-2xl font-bold text-slate-800 outline-none" />
               <div className="flex gap-3">

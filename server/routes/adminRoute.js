@@ -1,7 +1,7 @@
 import express from 'express';
 import adminAuth from '../middlewares/adminAuth.js';
 import upload from '../middlewares/uploadImg.js';
-import {adminDashboard, adminLogin, adminLogout, createUser,   deleteOrder, deleteProduct, getAdminStats, getAllProducts,getAllOrders, getOrderById, getProductById, getUserById, updateOrderStatus, updateProduct, sendNoticeEmails, getRecentNotices} from '../controllers/adminController.js';
+import {adminDashboard, adminLogin, adminLogout, createUser, deleteOrder, deleteProduct, generateOrderInvoice, getAdminStats, getAllProducts,getAllOrders, getOrderById, getProductById, getUserById, updateOrderStatus, updateProduct, sendNoticeEmails, getRecentNotices} from '../controllers/adminController.js';
 
 
 
@@ -22,6 +22,7 @@ adminRouter.delete('/delete-product/:id',adminAuth, deleteProduct);
 
 adminRouter.get('/orders',adminAuth, getAllOrders);
 adminRouter.get('/order/:id',adminAuth, getOrderById);
+adminRouter.get('/order/:id/invoice', adminAuth, generateOrderInvoice);
 adminRouter.put('/update-order-status/:id',adminAuth, updateOrderStatus);
 adminRouter.delete('/delete-order/:id',adminAuth, deleteOrder); 
 

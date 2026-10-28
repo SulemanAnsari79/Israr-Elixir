@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext.jsx';
+import { AuthContext } from '../context/AuthContextDefinition.js';
 import { Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react';
 
 export default function Navbar() {

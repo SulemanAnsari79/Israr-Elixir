@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "../../services/AdminService.js";
-// import { getAllProducts } from "../../services/ProductService.js";
 import {
   FiSearch,
   FiEdit2,
@@ -13,8 +12,6 @@ import {
   FiX,
   FiCheck,
   FiImage,
-  FiDollarSign,
-  FiTrendingUp,
   FiPackage,
 } from "react-icons/fi";
 import {toast} from "react-toastify";
@@ -352,7 +349,7 @@ const ManageProducts = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           {/* Search */}
           <div className="md:col-span-2 relative">
-            <FiSearch className="absolute left-3 top-3.5 text-gray-400" />
+            <FiSearch className="absolute left-3 top-3 text-gray-400" />
             <input
               type="text"
               placeholder="Search by name, description..."
@@ -401,7 +398,7 @@ const ManageProducts = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => setViewType("grid")}
-                className={`px-4 py-2 rounded-lg font-medium transition ${
+                className={`px-6   rounded-lg   transition ${
                   viewType === "grid"
                     ? "bg-purple-500 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -421,7 +418,7 @@ const ManageProducts = () => {
               </button>
             </div>
           </div>
-          <button className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+          <button className="flex items-center justify-center gap-2 px-4 py-1 border border-gray-300 text-gray-700 rounded-lg  hover:bg-black hover:text-white transition">
             <FiDownload size={20} />
             Export
           </button>
@@ -502,13 +499,13 @@ const ManageProducts = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleViewProduct(product)}
-                          className="flex-1 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition font-medium text-sm"
+                          className="flex-1 p-2 rounded-lg transition font-medium text-sm"
                         >
                           <FiEye size={16} className="mx-auto" />
                         </button>
                         <button
                           onClick={() => handleEditProduct(product)}
-                          className="flex-1 p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition font-medium text-sm"
+                          className="flex-1 p-2 text-blue-600 hover:bg-orange-200 rounded-lg transition font-medium text-sm"
                         >
                           <FiEdit2 size={16} className="mx-auto" />
                         </button>
@@ -518,7 +515,7 @@ const ManageProducts = () => {
                           }
                           className={`flex-1 p-2 rounded-lg transition font-medium text-sm ${
                             product.isActive
-                              ? "text-red-600 hover:bg-red-50"
+                              ? "hover:text-red-600 hover:bg-red-200"
                               : "text-green-600 hover:bg-green-50"
                           }`}
                         >
@@ -530,7 +527,7 @@ const ManageProducts = () => {
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(product._id)}
-                          className="flex-1 p-2 text-red-600 hover:bg-red-50 rounded-lg transition font-medium text-sm"
+                          className="flex-1 p-2 hover:text-red-600 hover:bg-red-200 rounded-lg transition font-medium text-sm"
                         >
                           <FiTrash2 size={16} className="mx-auto" />
                         </button>
@@ -597,7 +594,7 @@ const ManageProducts = () => {
                   {filteredProducts.map((product) => (
                     <tr
                       key={product._id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition"
+                      className="border-b border-gray-100 transition"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -654,14 +651,14 @@ const ManageProducts = () => {
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => handleViewProduct(product)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            className="p-2 text-blue-600 rounded-lg transition"
                             title="View"
                           >
                             <FiEye size={18} />
                           </button>
                           <button
                             onClick={() => handleEditProduct(product)}
-                            className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                            className="p-2 text-blue-600 hover:bg-orange-200 rounded-lg transition"
                             title="Edit"
                           >
                             <FiEdit2 size={18} />
@@ -672,8 +669,8 @@ const ManageProducts = () => {
                             }
                             className={`p-2 rounded-lg transition ${
                               product.isActive
-                                ? "text-red-600 hover:bg-red-50"
-                                : "text-green-600 hover:bg-green-50"
+                                ? "hover:text-red-600 hover:bg-red-200"
+                                : " text-green-600 hover:bg-red-50"
                             }`}
                             title={product.isActive ? "Deactivate" : "Activate"}
                           >
@@ -685,7 +682,7 @@ const ManageProducts = () => {
                           </button>
                           <button
                             onClick={() => handleDeleteProduct(product._id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            className="p-2 hover:text-red-600 hover:bg-red-200 rounded-lg transition"
                             title="Delete"
                           >
                             <FiTrash2 size={18} />

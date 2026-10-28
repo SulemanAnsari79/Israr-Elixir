@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { ChevronDown, Menu } from "lucide-react";
 import {
   getOrders,
   getRecentNotices,
@@ -30,6 +30,40 @@ const AdminSidebar = () => {
     notices: 0,
   });
   const [seenCounts, setSeenCounts] = useState(getInitialSeenCounts);
+  const menuGroups = [
+    {
+      name: "Overview",
+      items: [{ name: "Dashboard", path: "/admin" }],
+    },
+    {
+      name: "Store",
+      items: [
+        { name: "Products", path: "/admin/products" },
+        { name: "Homepage", path: "/admin/homepage" },
+        { name: "Store Policies", path: "/admin/policies" },
+      ],
+    },
+    {
+      name: "Orders",
+      items: [
+        { name: "Orders", path: "/admin/orders", badgeKey: "orders" },
+        { name: "Order Requests", path: "/admin/order-requests", badgeKey: "orderRequests" },
+        { name: "Refund Control", path: "/admin/refunds", badgeKey: "refunds" },
+      ],
+    },
+    {
+      name: "Customers",
+      items: [{ name: "Users", path: "/admin/users", badgeKey: "users" }],
+    },
+    {
+      name: "Communication",
+      items: [{ name: "Notices", path: "/admin/notices", badgeKey: "notices" }],
+    },
+  ];
+  const getActiveGroupNames = () => menuGroups
+    .filter((group) => group.items.some((item) => location.pathname === item.path))
+    .map((group) => group.name);
+  const [openGroups, setOpenGroups] = useState(getActiveGroupNames);
 
   const persistSeenCounts = (nextSeenCounts) => {
     try {
@@ -121,10 +155,6 @@ const AdminSidebar = () => {
           String(item?.refundControl?.status || "") === "PendingApproval"
       ).length;
 
-      const codRefundCount = orders.filter(
-        (item) => String(item?.codRefund?.status || "") === "Requested"
-      ).length;
-
       const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
       const recentNoticesCount = notices.filter((item) => {
         const ts = new Date(item?.createdAt || 0).getTime();
@@ -138,7 +168,7 @@ const AdminSidebar = () => {
         leaveRequests: leaveRequestsPendingCount,
         orders: ordersActiveCount,
         orderRequests: orderRequestsCount,
-        refunds: appointmentRefundCount + codRefundCount,
+        refunds: appointmentRefundCount,
         notices: recentNoticesCount,
       });
     } catch {
@@ -151,17 +181,6 @@ const AdminSidebar = () => {
     const intervalId = setInterval(fetchBadgeCounts, 60000);
     return () => clearInterval(intervalId);
   }, []);
-
-  const menuItems = [
-    { name: "Dashboard", path: "/admin" },
-    { name: "Users", path: "/admin/users", badgeKey: "users" },
-    { name: "Products", path: "/admin/products" },
-    { name: "Homepage", path: "/admin/homepage" },
-    { name: "Orders", path: "/admin/orders", badgeKey: "orders" },
-    { name: "Order Requests", path: "/admin/order-requests", badgeKey: "orderRequests" },
-    { name: "Refund Control", path: "/admin/refunds", badgeKey: "refunds" },
-    { name: "Notices", path: "/admin/notices", badgeKey: "notices" },
-  ];
 
   return (
     <>
@@ -194,40 +213,61 @@ const AdminSidebar = () => {
 
         {/* Links */}
         <nav className="space-y-1 p-3 pt-5">
-          {menuItems.map((item) => (
-            (() => {
-              const visibleBadge = getVisibleBadgeCount(item.badgeKey);
-              return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => {
-                setOpen(false);
-                markBadgeAsSeen(item.badgeKey);
-              }}
-              className={`flex items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium transition
-              ${
-                location.pathname === item.path
-                  ? "bg-[#302a23] text-white"
-                  : "text-gray-700 hover:bg-[#f1e9df]"
-              }`}
-            >
-              <span>{item.name}</span>
-              {visibleBadge > 0 ? (
-                <span
-                  className={`min-w-5 h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${
-                    location.pathname === item.path
-                      ? "bg-white text-[#302a23]"
-                      : "bg-[#9e6b51] text-white"
+          {menuGroups.map((group) => {
+            const hasActiveItem = group.items.some((item) => location.pathname === item.path);
+            const isOpen = openGroups.includes(group.name) || hasActiveItem;
+            return (
+              <div key={group.name} className="mb-2">
+                <button
+                  type="button"
+                  onClick={() => setOpenGroups((current) => (
+                    current.includes(group.name)
+                      ? current.filter((name) => name !== group.name)
+                      : [...current, group.name]
+                  ))}
+                  className={`flex w-full items-center justify-between rounded-lg px-4 py-2 text-[10px] font-bold uppercase tracking-[.16em] transition ${
+                    hasActiveItem ? "text-[#302a23]" : "text-[#8b7862] hover:bg-[#f1e9df]"
                   }`}
+                  aria-expanded={isOpen}
                 >
-                  {visibleBadge > 99 ? "99+" : visibleBadge}
-                </span>
-              ) : null}
-            </Link>
-              );
-            })()
-          ))}
+                  <span>{group.name}</span>
+                  <ChevronDown size={15} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isOpen && (
+                  <div className="mt-1 space-y-1">
+                    {group.items.map((item) => {
+                      const visibleBadge = getVisibleBadgeCount(item.badgeKey);
+                      const isActive = location.pathname === item.path;
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => {
+                            setOpen(false);
+                            markBadgeAsSeen(item.badgeKey);
+                          }}
+                          className={`ml-2 flex items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium transition ${
+                            isActive
+                              ? "bg-[#302a23] text-white"
+                              : "text-gray-700 hover:bg-[#f1e9df]"
+                          }`}
+                        >
+                          <span>{item.name}</span>
+                          {visibleBadge > 0 ? (
+                            <span className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${
+                              isActive ? "bg-white text-[#302a23]" : "bg-[#9e6b51] text-white"
+                            }`}>
+                              {visibleBadge > 99 ? "99+" : visibleBadge}
+                            </span>
+                          ) : null}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
       </div>
     </>

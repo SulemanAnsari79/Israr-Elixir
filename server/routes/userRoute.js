@@ -3,7 +3,7 @@ import auth from '../middlewares/auth.js';
 import adminAuth from '../middlewares/adminAuth.js';
 import upload from '../middlewares/uploadImg.js';
 
-import {register,login,googleLogin,logout, getUserProfile, updateUserProfile, getAllUsers, deleteUser, updateUser, createUser, uploadProfileImage, changePassword, deleteAccount, sendForgotPasswordOtp, verifyForgotPasswordOtp, resetPasswordWithOtp, submitContactMessage} from '../controllers/userController.js';
+import {register,login,googleLogin,logout, getCurrentSession, getUserProfile, updateUserProfile, getAllUsers, deleteUser, updateUser, createUser, uploadProfileImage, changePassword, deleteAccount, sendForgotPasswordOtp, verifyForgotPasswordOtp, resetPasswordWithOtp, submitContactMessage} from '../controllers/userController.js';
 // import { getPublicDeliveryLocations } from '../controllers/adminController.js';
 
 
@@ -16,7 +16,8 @@ userRouter.post('/forgot-password/send-otp', sendForgotPasswordOtp);
 userRouter.post('/forgot-password/verify-otp', verifyForgotPasswordOtp);
 userRouter.post('/forgot-password/reset-password', resetPasswordWithOtp);
 userRouter.post('/contact-us', submitContactMessage);
-userRouter.post('/logout',auth, logout);
+userRouter.post('/logout', logout);
+userRouter.get('/session', auth, getCurrentSession);
 userRouter.get('/profile',auth, getUserProfile);
 userRouter.put('/update-profile',auth, updateUserProfile);
 userRouter.post('/upload-profile-image', auth, upload.single('image'), uploadProfileImage);
