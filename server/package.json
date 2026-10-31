@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "sehatrazz-server",
+  "name": "perfumes-server",
   "version": "1.0.0",
   "description": "Server side for SehatRazz application",
   "main": "server.js",
