@@ -11,6 +11,7 @@ import connectCloudinry from './config/cloudinary.js';
 import helmet from "helmet";
 import limiter from './middlewares/rateLimiter.js';
 import cookieParser from 'cookie-parser';
+import csrfProtection from './middlewares/csrfProtection.js';
 
 import userRouter from './routes/userRoute.js';
 import adminRouter from './routes/adminRoute.js';
@@ -19,6 +20,7 @@ import productRouter from './routes/productRoute.js';
 import orderRouter from './routes/orderRoute.js';
 import homepageRouter from './routes/homepageRoute.js';
 import policyRouter from './routes/policyRoute.js';
+import storefrontRouter from './routes/storefrontRoute.js';
 
 dotenv.config();
 const app= express();
@@ -27,9 +29,7 @@ const PORT = process.env.PORT || 4001;
 
 
 const getAllowedOrigins = () => {
-    const configuredOrigins = [
-        process.env.CORS_ORIGIN
-    ]
+    const configuredOrigins = [process.env.CORS_ORIGIN]
         .filter(Boolean)
         .flatMap((value) => value.split(','))
         .map((value) => value.trim())
@@ -43,9 +43,6 @@ const getAllowedOrigins = () => {
 };
 
 const allowedOrigins = getAllowedOrigins();
-const corsOrigin = allowedOrigins.length > 0 ? allowedOrigins : true;
-
-
 connectCloudinry();
 
 app.use(express.json({
@@ -53,10 +50,22 @@ app.use(express.json({
         req.rawBody = Buffer.from(buffer);
     },
 }));
-app.use(cors({ origin: corsOrigin, credentials: true }));//, limiter:true
+
+app.locals.allowedOrigins = allowedOrigins;
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(null, false);
+    },
+    credentials: true
+}));
+
 app.use(limiter);
 app.use(helmet());
 app.use(cookieParser());
+app.use(csrfProtection);
 
 app.get('/', (req, res) => {
     res.send('Server is running successfully');
@@ -70,6 +79,7 @@ app.use('/api/product',productRouter);
 app.use('/api/order',orderRouter);
 app.use('/api/homepage', homepageRouter);
 app.use('/api/policies', policyRouter);
+app.use('/api/storefront', storefrontRouter);
 
 app.get(/^(?!\/api\/).*/, (req, res) => {
     res.sendFile(path.join(__dirname, '../client/index.html'));

@@ -1,6 +1,7 @@
 import express from 'express';
 import adminAuth from '../middlewares/adminAuth.js';
 import upload from '../middlewares/uploadImg.js';
+import { getActiveSessions, revokeSession, revokeUserSessions } from "../controllers/sessionController.js";
 import {adminDashboard, adminLogin, adminLogout, createUser, deleteOrder, deleteProduct, generateOrderInvoice, getAdminStats, getAllProducts,getAllOrders, getOrderById, getProductById, getUserById, updateOrderStatus, updateProduct, sendNoticeEmails, getRecentNotices} from '../controllers/adminController.js';
 
 
@@ -12,6 +13,9 @@ adminRouter.post('/logout', adminLogout);
 
 adminRouter.get('/stats',adminAuth, getAdminStats);
 adminRouter.get('/dashboard',adminAuth, adminDashboard);
+adminRouter.get('/sessions', adminAuth, getActiveSessions);
+adminRouter.post('/sessions/:sessionId/revoke', adminAuth, revokeSession);
+adminRouter.post('/sessions/user/:userId/revoke-all', adminAuth, revokeUserSessions);
 adminRouter.post('/create-user',adminAuth, createUser);
 adminRouter.get('/user/:id',adminAuth, getUserById);
 

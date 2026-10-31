@@ -1,7 +1,7 @@
 /**
  * Password Validation Utility
  * Provides strong password validation and strength checking
- */
+*/
 
 export const passwordRules = {
   minLength: 8,

@@ -37,9 +37,10 @@ const AuthService = {
     }
   },
 
-  logout: async () => {
+  logout: async (role = "user") => {
     try {
-      const response = await api.post("/api/user/logout");
+      const endpoint = role === "admin" ? "/api/admin/logout" : "/api/user/logout";
+      const response = await api.post(endpoint);
       return response.data;
     } catch (error) {
       throw getError(error, "Logout failed");

@@ -1,6 +1,7 @@
-import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 import { AUTH_COOKIE_NAME } from "../utils/authCookie.js";
+import { verifyAccessToken } from "../utils/jwt.js";
+import Session from "../models/sessionModel.js";
 
 const auth = async (req,res,next)=>{
   try{
@@ -10,22 +11,30 @@ const auth = async (req,res,next)=>{
       return res.status(401).json({success:false, message:"Not logged in"});
     }
 
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const decodedToken = verifyAccessToken(token);
     
     if (!decodedToken || !decodedToken.role || !['user', 'doctor', 'admin', 'delivery'].includes(decodedToken.role)) {
           return res.status(403).json({success:false, message: "Access Denied" });
     }
-    // For non-admin users, verify they exist in database
     if (decodedToken.role !== "admin") {
-      if (decodedToken.role === "user") {
-        const user = await User.findById(decodedToken._id);
-        if(!user){
-          return res.status(401).json({success:false, message:"User not found"});
-        }
-        req.user = user;
+      const user = await User.findById(decodedToken._id);
+      if (!user || user.isDeleted || user.isActive === false) {
+        return res.status(401).json({success:false, message:"Account is not active"});
       } 
+      if (decodedToken.sessionVersion !== user.sessionVersion) {
+        return res.status(401).json({success:false, message:"Session has been revoked"});
+      }
+      if (decodedToken.sessionId) {
+        const session = await Session.findOneAndUpdate(
+          { sessionId: decodedToken.sessionId, revokedAt: null, expiresAt: { $gt: new Date() } },
+          { lastActivityAt: new Date() }
+        );
+        if (!session) {
+          return res.status(401).json({success:false, message:"Session has expired or been revoked"});
+        }
+      }
+      req.user = user;
     } else {
-      // For admin, just set user object with decoded token
       req.user = decodedToken;
     }
     next();     

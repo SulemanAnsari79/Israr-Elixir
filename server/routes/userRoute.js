@@ -4,8 +4,6 @@ import adminAuth from '../middlewares/adminAuth.js';
 import upload from '../middlewares/uploadImg.js';
 
 import {register,login,googleLogin,logout, getCurrentSession, getUserProfile, updateUserProfile, getAllUsers, deleteUser, updateUser, createUser, uploadProfileImage, changePassword, deleteAccount, sendForgotPasswordOtp, verifyForgotPasswordOtp, resetPasswordWithOtp, submitContactMessage} from '../controllers/userController.js';
-// import { getPublicDeliveryLocations } from '../controllers/adminController.js';
-
 
 const userRouter= express.Router(); 
 

@@ -2,16 +2,29 @@ import User from '../models/userModel.js';
 import Order from '../models/orderModel.js';
 import Notice from '../models/noticeModel.js';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import { signAccessToken, verifyAccessToken } from '../utils/jwt.js';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { v2 as cloudinary } from 'cloudinary';
 import { validatePasswordStrength } from '../utils/passwordValidator.js';
-import { clearAuthCookie, setAuthCookie } from '../utils/authCookie.js';
+import { AUTH_COOKIE_NAME, clearAuthCookie, setAuthCookie } from '../utils/authCookie.js';
+import Session from '../models/sessionModel.js';
 
-const createToken = (id, role = "user") => {
-    return jwt.sign({ _id: id, role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+const createToken = (id, role = "user", sessionVersion = 0, sessionId) => {
+    return signAccessToken({ _id: id, role, sessionVersion, sessionId });
+};
+
+const createSession = async (userId, req) => {
+    const sessionId = crypto.randomUUID();
+    await Session.create({
+        userId,
+        sessionId,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent") || "",
+    });
+    return sessionId;
 };
 
 const googleClient = new OAuth2Client();
@@ -55,7 +68,8 @@ export const googleLogin = async (req, res) => {
             await user.save();
         }
 
-        const token = createToken(user._id, 'user');
+        const sessionId = await createSession(user._id, req);
+        const token = createToken(user._id, 'user', user.sessionVersion, sessionId);
         setAuthCookie(res, token);
         return res.status(200).json({
             success: true,
@@ -137,7 +151,8 @@ export const login = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
 
-        const token = createToken(user._id, "user");
+        const sessionId = await createSession(user._id, req);
+        const token = createToken(user._id, "user", user.sessionVersion, sessionId);
         setAuthCookie(res, token);
          
         res.status(200).json
@@ -154,6 +169,26 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
+        const token = req.cookies?.[AUTH_COOKIE_NAME];
+        if (token) {
+            try {
+                const decodedToken = verifyAccessToken(token);
+                if (decodedToken.role !== "admin" && decodedToken._id) {
+                    if (decodedToken.sessionId) {
+                        await Session.findOneAndUpdate(
+                            { sessionId: decodedToken.sessionId, revokedAt: null },
+                            { revokedAt: new Date() }
+                        );
+                    } else {
+                        await User.findByIdAndUpdate(decodedToken._id, { $inc: { sessionVersion: 1 } });
+                    }
+                }
+            } catch (error) {
+                if (!['TokenExpiredError', 'JsonWebTokenError'].includes(error.name)) {
+                    console.error('Session revocation error:', error);
+                }
+            }
+        }
         clearAuthCookie(res);
         res.status(200).json({ success: true, message: 'User logged out successfully' });
     } catch (error) {
@@ -175,7 +210,9 @@ export const getCurrentSession = async (req, res) => {
             });
         }
 
-        const user = await User.findById(req.user?._id).select('-password');
+        const user = await User.findById(req.user?._id).select(
+            '_id name email role address city state zipCode phone image isActive createdAt updatedAt'
+        ).lean();
         if (!user) {
             return res.status(401).json({ success: false, message: 'User not found' });
         }
@@ -341,7 +378,10 @@ export const updateUser = async (req,res)=>{
     if (state) updateData.state = state;
     if (zipCode) updateData.zipCode = zipCode;
     if (role) updateData.role = role;
-    if (isActive !== undefined) updateData.isActive = isActive;
+    if (isActive !== undefined) {
+      updateData.isActive = isActive;
+      if (isActive === false) updateData.$inc = { sessionVersion: 1 };
+    }
 
     const user = await User.findByIdAndUpdate(
       req.params.id,
@@ -364,6 +404,7 @@ export const deleteUser = async (req,res)=>{
       userId,
       {
         isDeleted: true,
+        $inc: { sessionVersion: 1 },
         deletedAt: new Date(),
         deletedReason: 'User account deleted by admin'
       },
@@ -422,6 +463,7 @@ export const changePassword = async (req, res) => {
         }
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedNewPassword;
+        user.sessionVersion += 1;
         await user.save();
         res.status(200).json({ success: true, message: 'Password changed successfully' });
     }
@@ -455,6 +497,7 @@ export const deleteAccount = async (req, res) => {
             userId,
             {
                 isDeleted: true,
+                $inc: { sessionVersion: 1 },
                 deletedAt: new Date(),
                 deletedReason: 'User self-deleted account'
             }
@@ -629,6 +672,7 @@ export const resetPasswordWithOtp = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
+        user.sessionVersion += 1;
         user.forgotPasswordOtp = '';
         user.forgotPasswordOtpExpiry = null;
         user.forgotPasswordOtpVerified = false;

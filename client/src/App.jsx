@@ -120,10 +120,12 @@ const Login = lazy(() => import("./pages/Login.jsx"));
 const AdminLayout = lazy(() => import("./layouts/AdminLayout.jsx"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.jsx"));
 const ManageUsers = lazy(() => import("./pages/admin/ManageUser.jsx"));
+const ActiveSessions = lazy(() => import("./pages/admin/ActiveSessions.jsx"));
 const ManageOrders = lazy(() => import("./pages/admin/ManageOrders.jsx"));
 const ManageOrderRequests = lazy(() => import("./pages/admin/ManageOrderRequests.jsx"));
 const ManageProducts = lazy(() => import("./pages/admin/ManageProduct.jsx"));
 const ManageHomepage = lazy(() => import("./pages/admin/ManageHomepage.jsx"));
+const ManageStorefront = lazy(() => import("./pages/admin/ManageStorefront.jsx"));
 const Notices = lazy(() => import("./pages/admin/Notices.jsx"));
 const ManageRefunds = lazy(() => import("./pages/admin/ManageRefunds.jsx"));
 const ManagePolicies = lazy(() => import("./pages/admin/ManagePolicies.jsx"));
@@ -173,11 +175,13 @@ function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="users" element={<ManageUsers />} />
+              <Route path="sessions" element={<ActiveSessions />} />
               <Route path="orders" element={<ManageOrders />} />
               <Route path="order-requests" element={<ManageOrderRequests />}/>
               <Route path="refunds" element={<ManageRefunds />} />
               <Route path="products" element={<ManageProducts />} />
               <Route path="homepage" element={<ManageHomepage />} />
+              <Route path="storefront" element={<ManageStorefront />} />
               <Route path="notices" element={<Notices />} />
               <Route path="policies" element={<ManagePolicies />} />
             </Route>

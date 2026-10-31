@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { 
@@ -12,8 +12,21 @@ import {
   StethoscopeIcon,
   CleanIcon
 } from 'hugeicons-react';
+import api from "../../services/Api.js";
 
 const About = () => {
+  const [about, setAbout] = useState({
+    eyebrow: 'The Israr Elixir story',
+    title: 'Fragrance that feels like you.',
+    intro: 'We believe a fragrance can hold a memory, set a mood, and make the everyday feel special.',
+    storyTitle: 'A little about us',
+    storyParagraphs: [
+      'Israr Elixir is a fragrance boutique for people who see scent as part of their personal style and daily ritual.',
+      'Our edit brings together distinctive perfumes and considered gifts, so finding your next signature scent feels simple and personal.',
+    ],
+    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1000',
+  });
+  useEffect(() => { api.get('/storefront').then(({ data }) => setAbout((current) => ({ ...current, ...(data.storefront?.about || {}) }))).catch(() => {}); }, []);
   return (
     <div className="store-page min-h-screen font-['Plus_Jakarta_Sans']">
       <Navbar />
@@ -27,15 +40,14 @@ const About = () => {
           
           <div className="max-w-7xl mx-auto text-center relative z-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 shadow-sm border border-slate-100">
-               <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">The  Israr Elixirstory</span>
+               <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">{about.eyebrow}</span>
             </div>
             {/* <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter mb-6 leading-tight">
               Fragrance that <br />
               <span className="text-transparent bg-clip-text bg-linear-to-r from-[#1A56DB] to-[#0D9488] italic font-serif">Feels like you.</span>
             </h1> */}
-            <p className="max-w-2xl mx-auto text-lg text-slate-500 font-medium leading-relaxed">
-              We believe a fragrance can hold a memory, set a mood, and make the everyday feel special.
-            </p>
+            <h1 className="mb-5 text-5xl font-black tracking-tighter text-slate-900">{about.title}</h1>
+            <p className="max-w-2xl mx-auto text-lg text-slate-500 font-medium leading-relaxed">{about.intro}</p>
           </div>
         </section>
 
@@ -46,7 +58,7 @@ const About = () => {
               <div className="absolute -top-6 -left-6 w-32 h-32 bg-teal-100 rounded-full blur-3xl opacity-50"></div>
               <div className="relative z-10 p-4 bg-white rounded-[3rem] shadow-2xl border border-slate-50 -rotate-2">
                 <img
-                  src="https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1000"
+                  src={about.image}
                   alt="A carefully composed perfume bottle"
                   className="rounded-[2.5rem] w-full h-125 object-cover"
                 />
@@ -54,14 +66,9 @@ const About = () => {
             </div>
 
             <div className="space-y-8">
-              <h2 className="text-4xl font-black text-slate-900 tracking-tight">A little about us</h2>
+              <h2 className="text-4xl font-black text-slate-900 tracking-tight">{about.storyTitle}</h2>
               <div className="space-y-6 text-slate-600 font-medium leading-relaxed text-lg">
-                <p>
-                   Israr Elixiris a fragrance boutique for people who see scent as part of their <span className="text-slate-900 font-bold">personal style and daily ritual</span>.
-                </p>
-                <p>
-                  Our edit brings together distinctive perfumes and considered gifts, so finding your next signature scent feels simple and personal.
-                </p>
+                {(about.storyParagraphs || []).filter(Boolean).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               </div>
               <div className="grid grid-cols-2 gap-4 pt-4">
                  <div className="bg-white p-6 rounded-3xl border border-slate-100">

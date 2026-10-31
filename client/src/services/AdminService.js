@@ -25,8 +25,18 @@ export const updateOrderStatus = (id, data) => API.put(`/order/orders/${id}`, da
 
 export const sendNoticeEmails = (data) => API.post("/admin/notices/send", data);
 export const getRecentNotices = () => API.get("/admin/notices/recent");
+export const getActiveSessions = () => API.get("/admin/sessions");
+export const revokeSession = (sessionId) => API.post(`/admin/sessions/${sessionId}/revoke`);
+export const revokeUserSessions = (userId) => API.post(`/admin/sessions/user/${userId}/revoke-all`);
 
 export const getPolicies = () => API.get("/policies");
 export const savePolicies = (data) => API.put("/policies", data);
+export const getStorefrontSettings = () => API.get("/storefront/admin");
+export const saveStorefrontSettings = (data) => API.put("/storefront", data);
+export const uploadStorefrontImage = (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+  return API.post("/storefront/upload", formData);
+};
 
 export default API;

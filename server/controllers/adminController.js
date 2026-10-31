@@ -3,7 +3,7 @@ import Product from "../models/productModel.js";
 import Order from "../models/orderModel.js";
 import Notice from "../models/noticeModel.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import { signAccessToken } from "../utils/jwt.js";
 import { clearAuthCookie, setAuthCookie } from "../utils/authCookie.js";
 import nodemailer from "nodemailer";
 import PDFDocument from "pdfkit";
@@ -97,7 +97,7 @@ export const adminLogin = async (req, res) => {
     }
 
     if (email === process.env.ADMIN_EMAIL?.trim().toLowerCase() && password === process.env.ADMIN_PASSWORD) {
-        const token = jwt.sign({ id: "admin", role: "admin" }, process.env.JWT_SECRET, { expiresIn: "1d" });
+        const token = signAccessToken({ _id: "admin", role: "admin", email });
         setAuthCookie(res, token);
         res.status(200).json({
           success:true,

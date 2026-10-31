@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, User as UserIcon } from "lucide-react";
 import { toast } from "react-toastify";
@@ -6,9 +6,10 @@ import AuthService from "../services/AuthService";
 import { AuthContext } from "../context/AuthContextDefinition";
 import PasswordStrengthIndicator from "../components/PasswordStrengthIndicator";
 import { GoogleLogin } from "@react-oauth/google";
+import api from "../services/Api";
 
-const LOGIN_BG_IMAGE = "../dist/LoginBg.png"; // Update the path to your background image
-const LOGO= "../dist/Logo.png"; // Update the path to your logo image
+const LOGIN_BG_IMAGE = "";
+const LOGO = "";
 
 
 export default function Login() {
@@ -22,9 +23,16 @@ export default function Login() {
   const [otp, setOtp] = useState("");
   const [resetPassword, setResetPassword] = useState("");
   const [confirmResetPassword, setConfirmResetPassword] = useState("");
+  const [storefront, setStorefront] = useState({ login: {} });
 
   const { login: contextLogin } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get("/storefront").then(({ data }) => {
+      if (data?.storefront) setStorefront(data.storefront);
+    }).catch(() => {});
+  }, []);
 
   const roles = [
     { value: "user", label: "User", icon: "👤" },
@@ -141,8 +149,7 @@ export default function Login() {
         throw new Error(response.message || "Login failed! Invalid response.");
       }
 
-      const userData = { ...response.user, role };
-      contextLogin(userData);
+      contextLogin(response.user);
       toast.success(response.message || "Logged in successfully!");
       navigate(role === "admin" ? "/admin" : "/");
     } catch (error) {
@@ -251,7 +258,7 @@ export default function Login() {
     <div
       className="login-page relative min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-950"
       style={{
-        backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.68), rgba(2, 6, 23, 0.82)), url('${LOGIN_BG_IMAGE}')`,
+        backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.68), rgba(2, 6, 23, 0.82)), url('${storefront.login?.backgroundImage || LOGIN_BG_IMAGE}')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
@@ -261,7 +268,7 @@ export default function Login() {
       <div className="relative max-w-5xl w-full bg-white/96 shadow-[0_20px_80px_rgba(2,6,23,0.45)] rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2 border border-white/30 backdrop-blur-sm">
         <div className="flex items-center justify-center p-6 md:p-8 order-1">
           <div className="text-white text-center px-4 md:px-6">
-            <img src={LOGO} alt="Login Background" className="mx-auto mb-6 w-32 h-32 object-cover rounded-full shadow-lg" />
+            {storefront.login?.logoImage || LOGO ? <img src={storefront.login?.logoImage || LOGO} alt={`${storefront.brandName || "Store"} logo`} className="mx-auto mb-6 h-32 w-32 rounded-full object-cover shadow-lg" /> : null}
             <h2 className="font-serif text-2xl tracking-[.12em] md:text-3xl">Welcome to  Israr Elixir</h2>
           </div>
         </div>

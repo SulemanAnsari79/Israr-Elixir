@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../services/Api.js";
 import Footer from "../../components/Footer";
@@ -14,8 +14,10 @@ import {
 } from 'hugeicons-react';
 
 const Contact = () => {
+  const [contact, setContact] = useState({ eyebrow: 'Israr Elixir customer care', title: 'We’re here to help.', description: 'Questions about a fragrance, an order, or a gift? Send us a note and our team will be happy to help.', address: 'New Delhi, India', phone: '+91 98765 43210', email: 'support@israrelixir.com', mapEmbedUrl: '' });
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [sending, setSending] = useState(false);
+  useEffect(() => { api.get('/storefront').then(({ data }) => setContact((current) => ({ ...current, ...(data.storefront?.contact || {}) }))).catch(() => {}); }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,13 +62,13 @@ const Contact = () => {
         <div className="max-w-7xl mx-auto px-6 text-center mb-16">
           <div className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full mb-6 border border-blue-100">
             <CustomerService01Icon size={16} className="text-[#1A56DB]" variant="bulk" />
-            <span className="text-[11px] font-black text-[#1A56DB] uppercase tracking-wider"> Israr Elixircustomer care</span>
+            <span className="text-[11px] font-black text-[#1A56DB] uppercase tracking-wider">{contact.eyebrow}</span>
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter mb-6">
-            We’re here to <span className="italic font-serif text-[#0D9488]">Help.</span>
+            {contact.title}
           </h1>
           <p className="text-slate-500 font-medium max-w-xl mx-auto">
-            Questions about a fragrance, an order, or a gift? Send us a note and our team will be happy to help.
+            {contact.description}
           </p>
         </div>
 
@@ -150,9 +152,9 @@ const Contact = () => {
             {/* Contact Info Cards */}
             <div className="grid gap-4">
               {[
-                { icon: <Location01Icon />, title: "Headquarters", detail: "New Delhi, India", color: "text-blue-600", bg: "bg-blue-50" },
-                { icon: <TelephoneIcon />, title: "Support Line", detail: "+91 98765 43210", color: "text-teal-600", bg: "bg-teal-50" },
-                { icon: <Mail01Icon />, title: "Direct Email", detail: "sehatraz@gmail.com", color: "text-rose-600", bg: "bg-rose-50" }
+                { icon: <Location01Icon />, title: "Headquarters", detail: contact.address, color: "text-blue-600", bg: "bg-blue-50" },
+                { icon: <TelephoneIcon />, title: "Support Line", detail: contact.phone, color: "text-teal-600", bg: "bg-teal-50" },
+                { icon: <Mail01Icon />, title: "Direct Email", detail: contact.email, color: "text-rose-600", bg: "bg-rose-50" }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-6 bg-white p-6 rounded-3xl border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                   <div className={`p-4 ${item.bg} ${item.color} rounded-2xl`}>
@@ -169,12 +171,12 @@ const Contact = () => {
             {/* Premium Map Widget */}
             <div className="relative group overflow-hidden bg-white p-3 rounded-[2.5rem] border border-slate-100 shadow-sm">
               <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
-              <iframe
+              {contact.mapEmbedUrl ? <iframe
                 title="map"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d224345.8392319277!2d77.06889754725782!3d28.52721314304836!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd5b347ec52d%3A0x52c01abc0e75a643!2sNew%20Delhi%2C%20Delhi!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin"
+                src={contact.mapEmbedUrl}
                 className="w-full h-72 rounded-4xl grayscale contrast-125 opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
                 loading="lazy"
-              ></iframe>
+              ></iframe> : <div className="flex h-72 items-center justify-center rounded-4xl bg-slate-100 text-sm text-slate-500">{contact.address}</div>}
             </div>
 
           </div>

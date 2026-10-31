@@ -40,7 +40,7 @@ const AdminSidebar = () => {
       items: [
         { name: "Products", path: "/admin/products" },
         { name: "Homepage", path: "/admin/homepage" },
-        { name: "Store Policies", path: "/admin/policies" },
+        { name: "Storefront settings", path: "/admin/storefront" },
       ],
     },
     {
@@ -54,6 +54,10 @@ const AdminSidebar = () => {
     {
       name: "Customers",
       items: [{ name: "Users", path: "/admin/users", badgeKey: "users" }],
+    },
+    {
+      name: "Security",
+      items: [{ name: "Active Sessions", path: "/admin/sessions" }],
     },
     {
       name: "Communication",

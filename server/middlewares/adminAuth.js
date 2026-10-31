@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken";
 import { AUTH_COOKIE_NAME } from "../utils/authCookie.js";
+import { verifyAccessToken } from "../utils/jwt.js";
 
 export const adminAuth = async (req,res,next)=>{
     try{
@@ -9,9 +9,9 @@ export const adminAuth = async (req,res,next)=>{
             return res.status(401).json({success:false, message:"Not logged in"});
         }
 
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const decodedToken = verifyAccessToken(token);
 
-        if(!decodedToken || decodedToken.role !== "admin"){
+        if(!decodedToken || decodedToken.role !== "admin" || decodedToken._id !== "admin"){
             return res.status(403).json({success:false, message:"Access denied. Admins only."});
         }
         
