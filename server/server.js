@@ -36,7 +36,8 @@ const getAllowedOrigins = () => {
         .filter(Boolean);
     if (process.env.NODE_ENV !== 'production') {
         configuredOrigins.push(
-            'http://localhost:5173'
+            'http://localhost:5173',
+            'https://israrelixir.official-suleman01.workers.dev/'
         );
     }
     return [...new Set(configuredOrigins)];
