@@ -105,7 +105,7 @@ const Checkout = () => {
         const createPaymentOrder = await axios.post(`${normalizedBackendUrl}/api/order/create-online-order`, {
           items: orderItems,
           shippingDetails: shipping,
-        }, { headers: { Authorization: `Bearer ${token}` } });
+        }, { headers: { Authorization: `Bearer ${token}` }, withCredentials: true });
 
         if (createPaymentOrder.data.success) {
           const paymentOrder = createPaymentOrder.data;
@@ -119,7 +119,7 @@ const Checkout = () => {
               const verify = await axios.post(`${normalizedBackendUrl}/api/order/verify-online-payment`, {
                 orderId: paymentOrder.orderId,
                 ...rzpResponse
-              }, { headers: { Authorization: `Bearer ${token}` } });
+              }, { headers: { Authorization: `Bearer ${token}` }, withCredentials: true });
               if (verify.data.success) { clearCart(); navigate("/place-order"); }
             }
           };
