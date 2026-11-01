@@ -37,7 +37,8 @@ const getAllowedOrigins = () => {
     if (process.env.NODE_ENV !== 'production') {
         configuredOrigins.push(
             'http://localhost:5173',
-            'https://israrelixir.official-suleman01.workers.dev'
+            'https://israrelixir.official-suleman01.workers.dev',
+            'https://israr-elixir-frontend.vercel.app',
         );
     }
     return [...new Set(configuredOrigins)];
@@ -53,15 +54,24 @@ app.use(express.json({
 }));
 
 app.locals.allowedOrigins = allowedOrigins;
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        return callback(null, false);
-    },
-    credentials: true
-}));
+app.use(
+  cors({
+    origin: getAllowedOrigins(),
+    credentials: true,
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE",
+      "OPTIONS",
+    ],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+    ],
+  })
+);
 
 app.use(limiter);
 app.use(helmet());
