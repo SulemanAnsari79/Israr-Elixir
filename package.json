@@ -1,0 +1,7 @@
+{
+  "name": "israr-elixir",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix client ci && npm --prefix client run build"
+  }
+}

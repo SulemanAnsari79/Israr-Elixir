@@ -1,0 +1,3 @@
+name = "israr-elixir"
+pages_build_output_dir = "client/dist"
+compatibility_date = "2026-11-01"
