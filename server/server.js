@@ -29,15 +29,15 @@ const PORT = process.env.PORT || 4001;
 
 
 const getAllowedOrigins = () => {
-    const configuredOrigins = [process.env.CORS_ORIGIN]
+    const configuredOrigins = [process.env.CORS_ORIGIN, process.env.CORS_ORIGINS]
         .filter(Boolean)
         .flatMap((value) => value.split(','))
-        .map((value) => value.trim())
+        .map((value) => value.trim().replace(/\/+$/, ''))
         .filter(Boolean);
     if (process.env.NODE_ENV !== 'production') {
         configuredOrigins.push(
             'http://localhost:5173',
-            'https://israrelixir.official-suleman01.workers.dev/'
+            'https://israrelixir.official-suleman01.workers.dev'
         );
     }
     return [...new Set(configuredOrigins)];

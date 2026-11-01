@@ -1,9 +1,14 @@
 const AUTH_COOKIE_NAME = "auth_token";
 
+const isSecureDeployment =
+  process.env.NODE_ENV === "production" ||
+  process.env.RENDER === "true" ||
+  process.env.AUTH_COOKIE_SECURE === "true";
+
 const getAuthCookieOptions = () => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: isSecureDeployment,
+  sameSite: isSecureDeployment ? "none" : "lax",
   path: "/",
   maxAge: 24 * 60 * 60 * 1000,
 });
