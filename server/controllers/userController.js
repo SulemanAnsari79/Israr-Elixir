@@ -155,15 +155,18 @@ export const login = async (req, res) => {
         const token = createToken(user._id, "user", user.sessionVersion, sessionId);
         setAuthCookie(res, token);
          
-        res.status(200).json
+        es.status(200).json
         ({
             success: true,
             message: 'Logged in successfully',
             user: { _id: user._id, name: user.name, email: user.email, role: "user" }
         });
     } catch (error) {
-        // console.error('Login error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Login error:', error);
+       return res.status(500).json({
+        success: false,
+        message: "Server error"
+    });
     }
 };
 
@@ -219,7 +222,7 @@ export const getCurrentSession = async (req, res) => {
 
         return res.status(200).json({ success: true, user });
     } catch (error) {
-        console.error('Get current session error:', error);
+        // console.error('Get current session error:', error);
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
