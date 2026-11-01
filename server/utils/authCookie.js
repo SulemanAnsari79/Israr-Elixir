@@ -3,11 +3,11 @@ const AUTH_COOKIE_NAME = "auth_token";
 const getAuthCookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite:  "lax",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   path: "/",
   maxAge: 24 * 60 * 60 * 1000,
 });
-// process.env.NODE_ENV === "production" ? "none" :
+
 
 export const setAuthCookie = (res, token) => {
   res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());

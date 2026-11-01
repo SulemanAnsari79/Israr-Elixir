@@ -4,18 +4,18 @@ const RAW_BASE_URL = import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV ? 
 const TRIMMED_BASE_URL = RAW_BASE_URL.replace(/\/+$/, "");
 const API_BASE_URL = TRIMMED_BASE_URL.endsWith("/api") ? TRIMMED_BASE_URL : `${TRIMMED_BASE_URL}/api`;
 
-// const api = axios.create({
-//   baseURL: API_BASE_URL,
-//   headers: { "Content-Type": "application/json" },
-//   timeout: 10000,
-//   withCredentials: true,
-// });
 const api = axios.create({
-  baseURL: "/",
+  baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
   timeout: 10000,
   withCredentials: true,
 });
+// const api = axios.create({
+//   baseURL: "/",
+//   headers: { "Content-Type": "application/json" },
+//   timeout: 10000,
+//   withCredentials: true,
+// });
 
 api.interceptors.request.use((config) => {
   if (typeof config.url === "string" && config.url.startsWith("/api/")) {

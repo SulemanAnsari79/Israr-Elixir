@@ -155,14 +155,14 @@ export const login = async (req, res) => {
         const token = createToken(user._id, "user", user.sessionVersion, sessionId);
         setAuthCookie(res, token);
          
-        es.status(200).json
+        res.status(200).json
         ({
             success: true,
             message: 'Logged in successfully',
             user: { _id: user._id, name: user.name, email: user.email, role: "user" }
         });
     } catch (error) {
-    console.error('Login error:', error);
+    // console.error('Login error:', error);
        return res.status(500).json({
         success: false,
         message: "Server error"
