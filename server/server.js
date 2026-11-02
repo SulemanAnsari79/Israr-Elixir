@@ -38,6 +38,7 @@ const getAllowedOrigins = () => {
         configuredOrigins.push(
             'http://localhost:5173',
             'https://israrelixir.official-suleman01.workers.dev',
+            'https://israr-elixir.pages.dev',
             'https://israr-elixir-frontend.vercel.app',
         );
     }
