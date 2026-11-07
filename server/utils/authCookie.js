@@ -1,9 +1,6 @@
 const AUTH_COOKIE_NAME = "auth_token";
 
-const isSecureDeployment =
-  process.env.NODE_ENV === "production" ||
-  process.env.RENDER === "true" ||
-  process.env.AUTH_COOKIE_SECURE === "true";
+const isSecureDeployment = process.env.NODE_ENV === "production" || process.env.RENDER === "true" || process.env.AUTH_COOKIE_SECURE === "true";
 
 const getAuthCookieOptions = () => ({
   httpOnly: true,

@@ -8,9 +8,11 @@ const orderSchema = new mongoose.Schema({
   paymentStatus:{type:String, enum:["Pending","Paid","Failed","Refund Pending","Refunded","Refund Rejected","Refund Failed"], default:"Pending"},
   paymentMethod:{type:String, required:true},
   notes:{type:String, default:""},
+  
   razorpayOrderId: { type: String, default: '' },
   razorpayPaymentId: { type: String, default: '' },
   razorpaySignature: { type: String, default: '' },
+
   refund: {
     status: {
       type: String,
@@ -28,8 +30,10 @@ const orderSchema = new mongoose.Schema({
     failureReason: { type: String, default: '' },
     webhookUpdatedAt: { type: Date, default: null }
   },
+
   paidAt: { type: Date },
   deliveredAt: { type: Date },
+
   cancelReason: { type: String, default: '' },
   cancelRequest: {
     status: { type: String, enum: ['None', 'Requested', 'Approved', 'Rejected'], default: 'None' },
@@ -54,6 +58,7 @@ const orderSchema = new mongoose.Schema({
     adminNotes: { type: String, default: '' }
   },
   returnDeadlineDate: { type: Date },
+
   shippingDetails:{
     fullName:{type:String,required:true},
     email:{type:String,required:true},
@@ -64,6 +69,7 @@ const orderSchema = new mongoose.Schema({
     country:{type:String,required:true},
     zip:{type:String,required:true}
   },
+  
   isDeleted: { type: Boolean, default: false },
   deletedAt: { type: Date, default: null },
   deletedReason: { type: String, default: '' }

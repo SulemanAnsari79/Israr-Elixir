@@ -34,8 +34,8 @@ orderRouter.post('/cancel/:id',auth, cancelOrder);
 orderRouter.post('/:id/return',auth, requestReturn);
 orderRouter.post('/:id/replace',auth, requestReplace);
 
-//Admin features
  
+//Admin features
 orderRouter.get('/orders',adminAuth, getAllOrders);
 orderRouter.put('/orders/:id',adminAuth, updateOrderStatus);
 orderRouter.get('/cancel-requests', adminAuth, listCancelRequests);

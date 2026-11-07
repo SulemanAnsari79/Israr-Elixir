@@ -16,6 +16,7 @@ userRouter.post('/forgot-password/reset-password', resetPasswordWithOtp);
 userRouter.post('/contact-us', submitContactMessage);
 userRouter.post('/logout', logout);
 userRouter.get('/session', auth, getCurrentSession);
+
 userRouter.get('/profile',auth, getUserProfile);
 userRouter.put('/update-profile',auth, updateUserProfile);
 userRouter.post('/upload-profile-image', auth, upload.single('image'), uploadProfileImage);

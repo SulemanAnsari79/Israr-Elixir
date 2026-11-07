@@ -32,35 +32,6 @@ const validateShippingDetails = async (shippingDetails) => {
     if (!/^\d{5,6}$/.test(normalizedZip)) {
         return 'ZIP Code must be 5-6 digits';
     }
-
-    const rules = await DeliveryLocationRule.findOne({ singletonKey: 'global' });
-    if (!rules || !rules.isEnabled) return null;
-
-    const cityAllowed = new Set((rules.allowedCities || []).map(normalizeText));
-    const stateAllowed = new Set((rules.allowedStates || []).map(normalizeText));
-    const countryAllowed = new Set((rules.allowedCountries || []).map(normalizeText));
-    const pincodeAllowed = new Set((rules.allowedPincodes || []).map(normalizePincode));
-
-    const normalizedCity = normalizeText(city);
-    const normalizedState = normalizeText(state);
-    const normalizedCountry = normalizeText(country);
-
-    if (cityAllowed.size > 0 && !cityAllowed.has(normalizedCity)) {
-        return 'Delivery is not available for this city';
-    }
-
-    if (stateAllowed.size > 0 && !stateAllowed.has(normalizedState)) {
-        return 'Delivery is not available for this state';
-    }
-
-    if (countryAllowed.size > 0 && !countryAllowed.has(normalizedCountry)) {
-        return 'Delivery is not available for this country';
-    }
-
-    if (pincodeAllowed.size > 0 && !pincodeAllowed.has(normalizedZip)) {
-        return 'Delivery is not available for this pincode';
-    }
-
     return null;
 };
 

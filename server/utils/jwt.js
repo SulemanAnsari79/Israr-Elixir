@@ -2,8 +2,8 @@ import jwt from "jsonwebtoken";
 
 export const jwtOptions = {
   algorithm: "HS256",
-  issuer: process.env.JWT_ISSUER || "sehatrazz-api",
-  audience: process.env.JWT_AUDIENCE || "sehatrazz-client",
+  issuer: process.env.JWT_ISSUER || "israrelixir-api",
+  audience: process.env.JWT_AUDIENCE || "israrelixir-client",
 };
 
 export const signAccessToken = (payload, options = {}) =>
