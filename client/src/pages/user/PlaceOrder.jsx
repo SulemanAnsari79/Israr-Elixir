@@ -217,8 +217,14 @@ const PlaceOrder = () => {
                             <PackageIcon size={19} variant="bulk" />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Order Ref</p>
+                            {/* <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Order Ref</p> */}
                             <p className="text-xs font-black text-slate-900 truncate">#{order._id?.substring(0, 12).toUpperCase()}</p>
+                            {order.createdAt && (
+                              <p className="mt-1 flex items-center gap-1 text-[9px] font-bold text-slate-400">
+                                <Calendar03Icon size={12} />
+                                <span>Order date: {new Date(order.createdAt).toLocaleDateString("en-GB")}</span>
+                              </p>
+                            )}
                         </div>
                     </div>
                     <div className={`shrink-0 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${status.bg} ${status.color}`}>
